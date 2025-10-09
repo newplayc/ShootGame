@@ -16,6 +16,9 @@ public:
 protected:
 	
 	virtual void BeginPlay() override;
+	virtual void Destroyed() override;
+
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UStaticMeshComponent> BulletMesh; 
 
@@ -25,9 +28,14 @@ protected:
 	UPROPERTY(VisibleAnywhere,  BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UProjectileMovementComponent>ProMovement;
 
-	
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UNiagaraSystem>HitParticle;
 
+	UFUNCTION()
+	void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	
 public:	
 	virtual void Tick(float DeltaTime) override;
 
 };
+ 

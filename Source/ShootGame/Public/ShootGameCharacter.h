@@ -64,7 +64,7 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
-	
+	virtual void NotifyControllerChanged() override;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	TObjectPtr<UCameraComponent>CameraComp;
 
@@ -86,7 +86,7 @@ protected:
 
 	
 	UFUNCTION()
-	void OnRep_TouchWeapon(AShootWeapon * LastTouchWeapon);
+	void OnRep_TouchWeapon(AShootWeapon * LastTouchWeapon) const;
 
 	
 	UPROPERTY(Replicated)

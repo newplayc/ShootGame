@@ -24,7 +24,6 @@ class MULTIPLAYER_API UMenuWidget : public UUserWidget
 protected:
 	virtual bool Initialize() override;
 	virtual void NativeDestruct() override;
-
 	//
 	// Callbacks for the custom delegates on the MultiplayerSessionsSubsystem
 	//

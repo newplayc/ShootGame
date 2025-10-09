@@ -4,7 +4,9 @@
 #include "ShootGame/Public/ShootGameCharacter.h"
 
 #include "CombatComponent.h"
+#include "ShootGameController.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -19,7 +21,9 @@ AShootGameCharacter::AShootGameCharacter()
 	bReplicates = true;
 	AActor::SetReplicateMovement(true);
 
-
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera , ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera , ECR_Ignore);
+	
 	NetUpdateFrequency = 100;
 	MinNetUpdateFrequency = 40;
 	
@@ -27,13 +31,15 @@ AShootGameCharacter::AShootGameCharacter()
 	SpringArmComp->SetupAttachment(GetMesh());
 	SpringArmComp->bUsePawnControlRotation = true;
 	
+	
 	CameraComp = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
 	CameraComp->SetupAttachment(SpringArmComp);
 	CameraComp->bUsePawnControlRotation = false;
 
+	
 	CombatComp = CreateDefaultSubobject<UCombatComponent>("CombatComponent");
 	CombatComp->SetIsReplicated(true);
-	
+
 	
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
@@ -50,7 +56,11 @@ void AShootGameCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	GetAOffest(DeltaTime);
-	
+	if(IsLocallyControlled())
+	{
+		double Dis =  UKismetMathLibrary::Vector_Distance(CameraComp->GetComponentLocation() , GetActorLocation());
+		GetMesh()->SetVisibility(Dis >= 80);
+	}
 }
 
 void AShootGameCharacter::SetTouchWeapon(AShootWeapon* NewTouchWeapon)
@@ -60,23 +70,17 @@ void AShootGameCharacter::SetTouchWeapon(AShootWeapon* NewTouchWeapon)
 	{
 		if (TouchWeapon)
 		{
-			TouchWeapon->SetWeaponState(EWeaponState::Spare, nullptr);
+			TouchWeapon->SetWeaponState(EWeaponState::Spare);
 		}
 		if (NewTouchWeapon)
 		{
-			NewTouchWeapon->SetWeaponState(EWeaponState::Touched, this);
+			NewTouchWeapon->SetWeaponState(EWeaponState::Touched);
 		}
 	}
 	TouchWeapon = NewTouchWeapon;
 }
 
-void AShootGameCharacter::ServerAim_Implementation(bool NewAim)
-{
-	if (CombatComp && CombatComp->GetIsEquipped())
-	{
-		CombatComp->SetAim(NewAim);	
-	}
-}
+
 
 FTransform AShootGameCharacter::GetWeaponLeftHandSocket() const
 {
@@ -122,21 +126,24 @@ void AShootGameCharacter::Aim(bool NewAim)
 		ServerAim(NewAim);
 	}
 }
+void AShootGameCharacter::ServerAim_Implementation(bool NewAim)
+{
+	if (CombatComp && CombatComp->GetIsEquipped())
+	{
+		CombatComp->SetAim(NewAim);	
+	}
+}
+
 
 void AShootGameCharacter::EquipWeapon()
 {
 	if (CombatComp && TouchWeapon)
 	{
-		if (HasAuthority())
-		{
-			auto temp = TouchWeapon;
-			TouchWeapon = nullptr;
-			CombatComp->EquipUpWeapon(temp);
-		}
-		else
-		{
-			EquipWeaponOnServer();
-		}
+		auto temp = TouchWeapon;
+		TouchWeapon = nullptr;
+		CombatComp->EquipUpWeapon(temp);
+		if(!HasAuthority())
+		EquipWeaponOnServer();
 	}
 }
 
@@ -156,7 +163,6 @@ void AShootGameCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME_CONDITION(AShootGameCharacter , TouchWeapon , COND_OwnerOnly);
-	//DOREPLIFETIME(AShootGameCharacter , AO_Yaw);
 	DOREPLIFETIME_CONDITION(AShootGameCharacter , AimRotation ,COND_SimulatedOnly);
 }
 
@@ -164,19 +170,30 @@ void AShootGameCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 	CombatComp->SetCharacter(this);
+
+
+}
+
+void AShootGameCharacter::NotifyControllerChanged()
+{
+	Super::NotifyControllerChanged();
+	if(CombatComp && IsLocallyControlled())
+	{
+		CombatComp->SetController(Cast<AShootGameController>(GetController()));
+	}
 }
 
 
-void AShootGameCharacter::OnRep_TouchWeapon(AShootWeapon* LastWeapon)
+void AShootGameCharacter::OnRep_TouchWeapon(AShootWeapon* LastWeapon) const
 {
 	if (LastWeapon == TouchWeapon)return;
 	if (LastWeapon)
 	{
-		LastWeapon->SetWeaponState(EWeaponState::Spare, nullptr);
+		LastWeapon->SetWeaponState(EWeaponState::Spare);
 	}
 	if (TouchWeapon)
 	{
-		TouchWeapon->SetWeaponState(EWeaponState::Touched,  this);
+		TouchWeapon->SetWeaponState(EWeaponState::Touched);
 	}
 }
 
@@ -185,25 +202,25 @@ void AShootGameCharacter::GetAOffest(float DeltaTime)
 	if (!CombatComp || !CombatComp->GetIsEquipped()){return;}
 	
 	bUseControllerRotationYaw = GetVelocity().Length() != 0;
+
 	
 	if (bUseControllerRotationYaw)
 	{
-		//AO_Yaw = 0;
+		AO_Yaw  =0;
 		TurnState = ETurnState::NoTurning;
 		return;
 	}
-
-
+	
 	if (IsLocallyControlled() || HasAuthority())
 	{
 		AimRotation =  GetBaseAimRotation();
 	}
+
 	
 	FRotator MeshRotation = UKismetMathLibrary::MakeRotFromX(GetActorForwardVector());
-	
 	AO_Yaw = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation , MeshRotation).Yaw;
 	AO_Pitch = GetBaseAimRotation().Pitch;
-
+	
 	
 	if (!bUseControllerRotationYaw)
 	{

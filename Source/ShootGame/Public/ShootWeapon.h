@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ShootGameCharacter.h"
+#include "ShootHud.h"
 #include "GameFramework/Actor.h"
 #include "ShootWeapon.generated.h"
 
@@ -30,7 +30,7 @@ public:
 	AShootWeapon();
 	void SetWeaponWidgetVisibility(bool NewVisibility) const;
 	void ChangeWeaponState() const;
-	void SetWeaponState(EWeaponState NewWeaponState, AShootGameCharacter* TouchCharacter);
+	void SetWeaponState(EWeaponState NewWeaponState);
 	FTransform GetWeaponMeshHandSocket()const;
 	static FName GetMuzzleSocketName(){return FName("Muzzle");};
 	
@@ -38,6 +38,9 @@ public:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_Fire();
+
+	UPROPERTY(EditDefaultsOnly , BlueprintReadOnly)
+	FAimCrossHair WeaponAimCrossHair;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -62,6 +65,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UAudioComponent * FireAudio;
+ 
 
 private:
 	

@@ -21,9 +21,9 @@
 /ALTERNATENAME:__imp___std_init_once_complete=__imp_InitOnceComplete
 /DELAYLOAD:"d3d12.dll"
 /DELAYLOAD:"DBGHELP.DLL"
-/LIBPATH:"E:\VisualStudio\IDE\VC\Tools\MSVC\14.38.33130\lib\x64"
-/LIBPATH:"C:\Program Files (x86)\Windows Kits\10\lib\10.0.22621.0\ucrt\x64"
-/LIBPATH:"C:\Program Files (x86)\Windows Kits\10\lib\10.0.22621.0\um\x64"
+/LIBPATH:"E:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.38.33130\lib\x64"
+/LIBPATH:"C:\Program Files (x86)\Windows Kits\10\lib\10.0.19041.0\ucrt\x64"
+/LIBPATH:"C:\Program Files (x86)\Windows Kits\10\lib\10.0.19041.0\um\x64"
 /NODEFAULTLIB:"LIBCMT"
 /NODEFAULTLIB:"LIBCPMT"
 /NODEFAULTLIB:"LIBCMTD"
@@ -37,6 +37,7 @@
 /FUNCTIONPADMIN:6
 "E:\Unreal Project\ShootGame\Intermediate\Build\Win64\x64\ShootGameEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.h.obj"
 "E:\Unreal Project\ShootGame\Plugins\Multiplayer\Intermediate\Build\Win64\x64\UnrealEditor\Development\Multiplayer\Module.Multiplayer.cpp.obj"
+"E:\Unreal Project\ShootGame\Plugins\Multiplayer\Intermediate\Build\Win64\x64\UnrealEditor\Development\Multiplayer\MenuWidget.cpp.obj"
 "E:\Unreal Project\ShootGame\Plugins\Multiplayer\Intermediate\Build\Win64\x64\UnrealEditor\Development\Multiplayer\Default.rc2.res"
 "..\Intermediate\Build\Win64\x64\UnrealEditor\Development\CoreUObject\UnrealEditor-CoreUObject.lib"
 "..\Intermediate\Build\Win64\x64\UnrealEditor\Development\Engine\UnrealEditor-Engine.lib"

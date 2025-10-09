@@ -101,7 +101,7 @@ void AShootWeapon::ChangeWeaponState() const
 }
 
 
-void AShootWeapon::SetWeaponState(EWeaponState NewWeaponState , AShootGameCharacter * TouchCharacter)
+void AShootWeapon::SetWeaponState(EWeaponState NewWeaponState)
 {
 	NowWeaponState = NewWeaponState;
 	ChangeWeaponState();	

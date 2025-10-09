@@ -19,6 +19,7 @@ public:
 	
 	virtual void Fire(const FVector_NetQuantize& FireImpact)  override;
 
+	
 protected:
 	UPROPERTY(EditDefaultsOnly , BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<ABulletBase> BulletClass;

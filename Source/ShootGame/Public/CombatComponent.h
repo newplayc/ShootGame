@@ -7,6 +7,8 @@
 #include "CombatComponent.generated.h"
 
 
+class AShootHud;
+class AShootGameController;
 class AShootGameCharacter;
 class AShootWeapon;
 
@@ -20,9 +22,9 @@ class SHOOTGAME_API UCombatComponent : public UActorComponent
 public:
 	UCombatComponent();
 	void SetCharacter(AShootGameCharacter * InOwnerCharacter){OwnerCharacter = InOwnerCharacter; }
+	void SetController(AShootGameController * InController);
 	void EquipUpWeapon(AShootWeapon * EquipWeapon);
 	void Fire();
-	
 	AShootWeapon * GetEquipWeapon() const{return EquipedWeapon;}
 	bool GetIsEquipped() const {return bIsEquiped;}
 	bool GetIsAim() const {return bIsAiming;}
@@ -45,15 +47,17 @@ protected:
 	UPROPERTY(Replicated)
 	bool bIsAiming;
 	
-
 	UFUNCTION()
 	void OnRep_EquipWeapon();
+
+	void SetHudParams();
 private:
 
 	
 	UPROPERTY(ReplicatedUSing  = OnRep_EquipWeapon)
 	AShootWeapon * EquipedWeapon =  nullptr;
-	
 	AShootGameCharacter * OwnerCharacter = nullptr;
+	AShootGameController * CharacterController =  nullptr;
+	AShootHud  * PlayerHUD = nullptr;
 	void EquipChange();
 };

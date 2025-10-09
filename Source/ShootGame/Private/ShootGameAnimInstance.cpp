@@ -26,7 +26,7 @@ void UShootGameAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsEquipped = NowCharacter->GetIsEquip();
 		bIsCrouch = NowCharacter->bIsCrouched;
 		bIsAiming = NowCharacter->GetIsAim();
-
+		
 		// 摄像机方向 和 速度方向 做差值
 		FRotator AimRotator = NowCharacter->GetBaseAimRotation();
 		FRotator VelocityRotator = UKismetMathLibrary::MakeRotFromX(NowCharacter->GetCharacterMovement()->Velocity);
@@ -36,7 +36,6 @@ void UShootGameAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		
 		AO_Yaw = UKismetMathLibrary::FInterpTo(AO_Yaw ,NowCharacter->GetAoYaw() , DeltaSeconds, 10.f);
 		AO_Pitch = UKismetMathLibrary::FInterpTo(AO_Pitch , NowCharacter->GetAoPitch() , DeltaSeconds, 10.f);
-		
 		WeaponLeftHandTransform = NowCharacter->GetWeaponLeftHandSocket();
 	}
 }

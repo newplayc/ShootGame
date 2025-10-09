@@ -3,21 +3,31 @@
 
 #include "CombatComponent.h"
 
-#include "AudioMixerDevice.h"
-#include "EdGraphUtilities.h"
 #include "ShootGameCharacter.h"
+#include "ShootGameController.h"
 #include "ShootWeapon.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
-#define TRACE_LENGTH 80000
+#define TRACE_LENGTH 30000
 
 
 UCombatComponent::UCombatComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
+}
+
+void UCombatComponent::SetController(AShootGameController* InController)
+{
+	CharacterController = InController;
+	
+	if(CharacterController)
+	if(AShootHud * Hud = Cast<AShootHud>(CharacterController->GetHUD()))
+	{
+		PlayerHUD = Hud;
+	}
 }
 
 void UCombatComponent::EquipUpWeapon(AShootWeapon* EquipWeapon)
@@ -31,11 +41,23 @@ void UCombatComponent::EquipUpWeapon(AShootWeapon* EquipWeapon)
 			bIsEquiped = true;
 			EquipChange();
 			EquipedWeapon->SetOwner(OwnerCharacter);
-			EquipedWeapon->SetWeaponState(EWeaponState::Equipped, OwnerCharacter);
-			
+			EquipedWeapon->SetWeaponState(EWeaponState::Equipped);
 		}
+
+		
+		SetHudParams();
 	}
 }
+
+
+void UCombatComponent::SetHudParams()
+{
+		if(PlayerHUD){	
+			PlayerHUD->AimCrossHair = EquipedWeapon->WeaponAimCrossHair;
+			PlayerHUD->bDrawAimCrossHair = true;
+		}
+}
+
 
 
 void UCombatComponent::Fire()
@@ -50,10 +72,14 @@ void UCombatComponent::Fire()
 		UGameplayStatics::DeprojectScreenToWorld(GetWorld()->GetFirstPlayerController() , ScreenPosition , WorldPosition , WorldDirection);
 		
 		FHitResult Hit;
-		FVector EndLocation = WorldPosition + WorldDirection * TRACE_LENGTH;
-		GetWorld()->LineTraceSingleByChannel(Hit, WorldPosition , EndLocation , ECC_WorldDynamic);
-		
-		ServerFire(Hit.TraceEnd);
+		FVector StartLocation = WorldPosition + WorldDirection * 500;
+		FVector EndLocation = StartLocation + WorldDirection * TRACE_LENGTH;
+		GetWorld()->LineTraceSingleByChannel(Hit, StartLocation , EndLocation , ECC_WorldDynamic);
+		if(Hit.bBlockingHit == false)
+		{
+			Hit.ImpactPoint = EndLocation;
+		}
+		ServerFire(Hit.ImpactPoint);
 	}
 	
 }
@@ -87,17 +113,22 @@ void UCombatComponent::OnRep_Equip()
 		EquipChange();
 }
 
-
 void UCombatComponent::SetAim(bool NewAim)
 {
 	bIsAiming = NewAim;
+	if(PlayerHUD)
+	{
+		PlayerHUD->bAim = NewAim;
+	}
 }
 
 
 void UCombatComponent::OnRep_EquipWeapon()
 {
-	EquipedWeapon->SetWeaponState(EWeaponState::Equipped, OwnerCharacter);
+	EquipedWeapon->SetWeaponState(EWeaponState::Equipped);
 }
+
+
 
 void UCombatComponent::BeginPlay()
 {
@@ -109,8 +140,11 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                      FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	
+	if(PlayerHUD && EquipedWeapon != nullptr)
+	{
+		PlayerHUD->bInAir = OwnerCharacter->GetMovementComponent()->IsFalling();
+		PlayerHUD->bMove = OwnerCharacter->GetCharacterMovement()->Velocity.Length() != 0;
+	}
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
