@@ -3,3 +3,9 @@
 
 #include "ShootPlayerState.h"
 
+#include "AttributeSet.h"
+
+AShootPlayerState::AShootPlayerState()
+{
+	Attributes = CreateDefaultSubobject<UAttributeSet>()
+}

@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
 #include "ShootPlayerState.generated.h"
-
 /**
  * 
  */
