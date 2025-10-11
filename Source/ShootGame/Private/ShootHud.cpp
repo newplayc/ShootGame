@@ -2,7 +2,37 @@
 
 
 #include "ShootHud.h"
+#include "ShootUserWidget.h"
+#include "ShootUserWidgetController.h"
 
+UShootUserWidgetController * AShootHud::GetShootUserWidgetController(const FWidgetControllerParams & InWCP)
+{
+	if(ShootUserWidgetController == nullptr)
+	{
+		ShootUserWidgetController = NewObject<UShootUserWidgetController>(this , GameUserWidgetControllerClass);
+		ShootUserWidgetController->InitShootWidetController(InWCP);
+	}
+	return ShootUserWidgetController;
+}
+
+void AShootHud::InitGameWidget(UShootAbilitySystemComponent *InASC  ,UShootAttributeSet * InAS)
+{
+	checkf(GameUserWidgetControllerClass ,TEXT("Check HUD WidgetControllerClass"));
+	checkf(GameUserWidgtClass , TEXT("Check HUD WidgetClass"));
+	
+	
+	GameUserWidet = CreateWidget<UShootUserWidget>(GetWorld() , GameUserWidgtClass);
+	if(GameUserWidet)
+	{
+		FWidgetControllerParams Params(InASC , InAS);
+		if(GetShootUserWidgetController(Params))
+		{
+			GameUserWidet->SetWidetController(ShootUserWidgetController);
+			ShootUserWidgetController->InitBroadCast();
+			GameUserWidet->AddToViewport();
+		}	
+	}
+}
 
 void AShootHud::DrawHUD()
 {

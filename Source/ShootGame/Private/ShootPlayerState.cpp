@@ -3,9 +3,24 @@
 
 #include "ShootPlayerState.h"
 
-#include "AttributeSet.h"
+#include "ShootAbilitySystemComponent.h"
+#include "ShootAttributeSet.h"
+
 
 AShootPlayerState::AShootPlayerState()
 {
-	Attributes = CreateDefaultSubobject<UAttributeSet>()
+	Attributes = CreateDefaultSubobject<UShootAttributeSet>("Attributes");
+	AbilitySystemComponent = CreateDefaultSubobject<UShootAbilitySystemComponent>("AbilitySystemComponent");
+	
+}
+
+
+UAbilitySystemComponent* AShootPlayerState::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
+UAttributeSet* AShootPlayerState::GetAttributes() const
+{
+	return Attributes;
 }

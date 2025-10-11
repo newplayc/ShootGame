@@ -3,8 +3,12 @@
 
 #include "ShootGame/Public/ShootGameCharacter.h"
 
+#include "AbilitySystemComponent.h"
 #include "CombatComponent.h"
+#include "ShootAbilitySystemComponent.h"
+#include "ShootAttributeSet.h"
 #include "ShootGameController.h"
+#include "ShootPlayerState.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -49,7 +53,9 @@ AShootGameCharacter::AShootGameCharacter()
 void AShootGameCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	BoneHitName.Add(FName("Head"));
+	BoneHitName.Add(FName("spine_03"));
+	BoneHitName.Add(FName("pelvis"));
 }
 
 void AShootGameCharacter::Tick(float DeltaTime)
@@ -93,6 +99,59 @@ FTransform AShootGameCharacter::GetWeaponLeftHandSocket() const
 	return FTransform(OutRotation , OutLocation , FVector());
 }
 
+void AShootGameCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	InitAbilityInfo();
+}
+
+void AShootGameCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	InitAbilityInfo();
+	
+}
+
+void AShootGameCharacter::InitAttributes()
+{
+	checkf(EffetToInit , TEXT("Please Check Character Effect Init"));
+	
+	ASC->ApplyEffectToInit(EffetToInit , 1 , this);
+}
+
+void AShootGameCharacter::InitAbilityInfo()
+{
+
+
+
+	if(AShootPlayerState * PS = Cast<AShootPlayerState>(GetPlayerState()))
+	{
+		ASC = Cast<UShootAbilitySystemComponent>(PS->GetAbilitySystemComponent());
+		AS =  Cast<UShootAttributeSet>(PS->GetAttributes());
+		
+		if(ASC)
+		{
+			ASC->InitAbilityActorInfo(PS , this);
+		}
+	}
+
+	
+	if(HasAuthority())
+	{
+		InitAttributes();
+	}
+	
+	APlayerController * PC =  Cast<APlayerController>(GetController());
+	if(PC)
+	{
+		if(AShootHud * hud = Cast<AShootHud>(PC->GetHUD()))
+		{
+			hud->InitGameWidget(ASC , AS);	
+		}
+	}
+}
+
+
 void AShootGameCharacter::Fire()
 {
 	if (CombatComp && CombatComp->GetIsEquipped())
@@ -102,7 +161,7 @@ void AShootGameCharacter::Fire()
 	}
 }
 
-void AShootGameCharacter::PlayMontage_Implementation()
+void AShootGameCharacter::PlayFireMontage_Implementation()
 {
 	FName SectionName = GetIsAim() ? FName("Ironsights") : FName("Hip");
 	PlayAnimMontage(FireMontage , 1 , SectionName);
@@ -111,7 +170,7 @@ void AShootGameCharacter::PlayMontage_Implementation()
 
 void AShootGameCharacter::ServerFire_Implementation()
 {
-	PlayMontage();
+	PlayFireMontage();
 }
 
 
@@ -141,8 +200,10 @@ void AShootGameCharacter::EquipWeapon()
 	{
 		auto temp = TouchWeapon;
 		TouchWeapon = nullptr;
+		
 		CombatComp->EquipUpWeapon(temp);
 		if(!HasAuthority())
+			
 		EquipWeaponOnServer();
 	}
 }
@@ -157,12 +218,11 @@ void AShootGameCharacter::EquipWeaponOnServer_Implementation()
 	}
 }
 
-
-
 void AShootGameCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME_CONDITION(AShootGameCharacter , TouchWeapon , COND_OwnerOnly);
+	DOREPLIFETIME(AShootGameCharacter , bDead);
 	DOREPLIFETIME_CONDITION(AShootGameCharacter , AimRotation ,COND_SimulatedOnly);
 }
 
@@ -170,8 +230,6 @@ void AShootGameCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 	CombatComp->SetCharacter(this);
-
-
 }
 
 void AShootGameCharacter::NotifyControllerChanged()
@@ -183,6 +241,57 @@ void AShootGameCharacter::NotifyControllerChanged()
 	}
 }
 
+UAbilitySystemComponent* AShootGameCharacter::GetAbilitySystemComponent() const
+{
+	if(ASC)return ASC;
+	if(AShootPlayerState * PS = Cast<AShootPlayerState>(GetPlayerState()))
+	{
+		return PS->GetAbilitySystemComponent();
+	}
+	return nullptr;
+}
+
+UAttributeSet* AShootGameCharacter::GetAttribute() const
+{
+	if(AShootPlayerState * PS = Cast<AShootPlayerState>(GetPlayerState()))
+	{
+		return PS->GetAttributes();
+	}
+	return nullptr;
+}
+
+FName AShootGameCharacter::GetNearBoneWithBullet_Implementation(FVector HitLocation)
+{
+	FName RetName;
+	float MinDis = 999999999.f;
+	for(const FName & Bone : BoneHitName)
+	{
+		FVector BoneLocation = GetMesh()->GetBoneLocation(Bone);
+		float dis = FVector::Distance(BoneLocation , HitLocation);
+		if(dis < MinDis)
+		{
+			RetName = Bone;
+			MinDis = dis;
+		}
+	}
+	return RetName;
+}
+
+bool AShootGameCharacter::IsDead_Implementation()
+{
+	return bDead;
+}
+
+void AShootGameCharacter::PlayReactMontage_Implementation()
+{
+	PlayAnimMontage(ReactMontage , 1);
+	
+}
+
+void AShootGameCharacter::PlayDeathMontage_Implementation()
+{
+	PlayAnimMontage(DeathMontage , 1);
+}
 
 void AShootGameCharacter::OnRep_TouchWeapon(AShootWeapon* LastWeapon) const
 {
@@ -202,9 +311,8 @@ void AShootGameCharacter::GetAOffest(float DeltaTime)
 	if (!CombatComp || !CombatComp->GetIsEquipped()){return;}
 	
 	bUseControllerRotationYaw = GetVelocity().Length() != 0;
-
 	
-	if (bUseControllerRotationYaw)
+	if (bUseControllerRotationYaw || GetCharacterMovement()->IsFalling())
 	{
 		AO_Yaw  =0;
 		TurnState = ETurnState::NoTurning;
@@ -225,8 +333,13 @@ void AShootGameCharacter::GetAOffest(float DeltaTime)
 	if (!bUseControllerRotationYaw)
 	{
 		if (AO_Yaw > 90.f){
-			TurnState = ETurnState::TurnRight;}
+			FRotator Rotator(GetActorRotation().Pitch, AimRotation.Yaw , GetActorRotation().Roll);
+			SetActorRotation(Rotator);
+			TurnState = ETurnState::TurnRight;
+		}
 		else if (AO_Yaw < -90.f){
+			FRotator Rotator(GetActorRotation().Pitch, AimRotation.Yaw , GetActorRotation().Roll);
+			SetActorRotation(Rotator);
 			TurnState = ETurnState::TurnLeft;
 		}
 		else

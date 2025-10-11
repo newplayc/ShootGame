@@ -2,10 +2,14 @@
 
 #pragma once
 #include "CoreMinimal.h"
+#include "AbilitySystemInterface.h"
 #include "CombatComponent.h"
+#include "EnemyInterface.h"
 #include "GameFramework/Character.h"
 #include "ShootGameCharacter.generated.h"
 
+class UGameplayEffect;
+class UAttributeSet;
 class UCombatComponent;
 class AShootWeapon;
 class USpringArmComponent;
@@ -21,12 +25,12 @@ enum class ETurnState : uint8
 
 
 UCLASS()
-class SHOOTGAME_API AShootGameCharacter : public ACharacter
+class SHOOTGAME_API AShootGameCharacter : public ACharacter ,public IAbilitySystemInterface ,public IEnemyInterface
 {
 	GENERATED_BODY()
 public:
+	
 	AShootGameCharacter();
-
 	AShootWeapon *  GetTouchWeapon() const{return TouchWeapon;}
 	void SetTouchWeapon(AShootWeapon * NewTouchWeapon);
 	static FName GetWeaponSocketName(){return FName("WeaponSocket");}
@@ -36,12 +40,16 @@ public:
 	float GetAoPitch()const {return AO_Pitch;}
 	ETurnState GetTurnState()const {return TurnState;};
 	FTransform GetWeaponLeftHandSocket() const;
+	void InitAbilityInfo();
+
+	UPROPERTY(Replicated)
+	bool bDead;
+	
 	UFUNCTION(BlueprintCallable)
 	void Fire();
-
 	
 	UFUNCTION(NetMulticast ,Reliable)
-	void PlayMontage();
+	void PlayFireMontage();
 
 	UFUNCTION(Server, Reliable)
 	void ServerFire();
@@ -57,6 +65,17 @@ public:
 	
 	UFUNCTION(Server , Reliable)
 	void EquipWeaponOnServer();
+	
+	virtual UAbilitySystemComponent * GetAbilitySystemComponent() const override;
+	UAttributeSet * GetAttribute() const;
+	virtual FName GetNearBoneWithBullet_Implementation(FVector HitLocation) override;
+	virtual bool IsDead_Implementation() override;
+	
+	UFUNCTION(NetMulticast , Unreliable)
+	void PlayReactMontage();
+	
+	UFUNCTION(NetMulticast ,Unreliable)
+	void PlayDeathMontage();
 
 	
 protected:
@@ -65,6 +84,11 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 	virtual void NotifyControllerChanged() override;
+	virtual  void PossessedBy(AController* NewController) override;
+	virtual  void OnRep_PlayerState() override;
+	void InitAttributes();
+
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	TObjectPtr<UCameraComponent>CameraComp;
 
@@ -76,29 +100,45 @@ protected:
 	
 	UPROPERTY(ReplicatedUsing = OnRep_TouchWeapon)
 	AShootWeapon * TouchWeapon;
-
 	
 	UPROPERTY()
 	ETurnState TurnState = ETurnState::NoTurning;
 
 	UPROPERTY(EditDefaultsOnly)
 	UAnimMontage* FireMontage;
-
-	
-	UFUNCTION()
-	void OnRep_TouchWeapon(AShootWeapon * LastTouchWeapon) const;
-
 	
 	UPROPERTY(Replicated)
 	FRotator AimRotation;
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameplayEffect>EffetToInit;
 	
-	float AO_Yaw;
-	float AO_Pitch;
+	UFUNCTION()
+	void OnRep_TouchWeapon(AShootWeapon * LastTouchWeapon) const;
+
+
+	
+	
+	UPROPERTY(EditDefaultsOnly)
+	UAnimMontage * ReactMontage;
+
+	UPROPERTY(EditDefaultsOnly)
+	UAnimMontage * DeathMontage;
+
+	
+
+
 	
 	void GetAOffest(float DeltaTime);
 
 	
+	float AO_Yaw;
+	float AO_Pitch;
+
+	
 private:
+	class UShootAbilitySystemComponent * ASC;
+	class UShootAttributeSet * AS;
+	TArray<FName>BoneHitName;
 	
 };

@@ -3,8 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ShootWeaponFire.h"
 #include "GameFramework/Actor.h"
 #include "BulletBase.generated.h"
+
+
+
 
 UCLASS()
 class SHOOTGAME_API ABulletBase : public AActor
@@ -13,14 +17,16 @@ class SHOOTGAME_API ABulletBase : public AActor
 public:	
 	ABulletBase();
 	
+	FEffectParams EffectParams;
+
 protected:
 	
 	virtual void BeginPlay() override;
+	
 	virtual void Destroyed() override;
-
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<class UStaticMeshComponent> BulletMesh; 
+	TObjectPtr< UStaticMeshComponent> BulletMesh; 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UBoxComponent> BoxCollision;
@@ -30,7 +36,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UNiagaraSystem>HitParticle;
-
+	
 	UFUNCTION()
 	void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 	

@@ -10,6 +10,10 @@
  * 
  */
 
+struct FWidgetControllerParams;
+class AShootGameController;
+class UShootUserWidget;
+class UShootUserWidgetController;
 
 USTRUCT(Blueprintable)
 struct FAimCrossHair
@@ -42,10 +46,25 @@ public:
 	bool bInAir = false;
 	bool bDrawAimCrossHair = false;
 	FAimCrossHair AimCrossHair;
+
+	void InitGameWidget(class UShootAbilitySystemComponent *InASC  ,class UShootAttributeSet * InAS);
+
 	
 protected:
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UShootUserWidget>GameUserWidgtClass;
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UShootUserWidgetController>GameUserWidgetControllerClass;
+
+	UPROPERTY(BlueprintReadOnly)
+	UShootUserWidget * 	GameUserWidet;
+
+	UPROPERTY(BlueprintReadOnly)
+	UShootUserWidgetController * ShootUserWidgetController;
+	
+	
 	UPROPERTY(EditDefaultsOnly)
 	float BaseCrossHairOffest = 3;
 	UPROPERTY(EditDefaultsOnly)
@@ -60,4 +79,5 @@ protected:
 	virtual void DrawHUD() override;
 	void DrawCrossHair();
 	
+	UShootUserWidgetController  * GetShootUserWidgetController(const  FWidgetControllerParams & InWCP);
 };

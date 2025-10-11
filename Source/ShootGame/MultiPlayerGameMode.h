@@ -13,9 +13,9 @@ UCLASS()
 class SHOOTGAME_API AMultiPlayerGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-	
-	virtual  void PostLogin(APlayerController* NewPlayer) override;
 
+public:
+	virtual  void PostLogin(APlayerController* NewPlayer) override;
 	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 	
 };

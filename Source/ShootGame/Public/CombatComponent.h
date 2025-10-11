@@ -53,7 +53,6 @@ protected:
 	void SetHudParams();
 private:
 
-	
 	UPROPERTY(ReplicatedUSing  = OnRep_EquipWeapon)
 	AShootWeapon * EquipedWeapon =  nullptr;
 	AShootGameCharacter * OwnerCharacter = nullptr;

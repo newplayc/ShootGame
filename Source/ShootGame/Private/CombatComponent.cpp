@@ -43,7 +43,6 @@ void UCombatComponent::EquipUpWeapon(AShootWeapon* EquipWeapon)
 			EquipedWeapon->SetOwner(OwnerCharacter);
 			EquipedWeapon->SetWeaponState(EWeaponState::Equipped);
 		}
-
 		
 		SetHudParams();
 	}
@@ -150,9 +149,9 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(UCombatComponent, bIsEquiped);
+//	DOREPLIFETIME(UCombatComponent, bIsEquiped);
 	DOREPLIFETIME(UCombatComponent, bIsAiming);
-	DOREPLIFETIME(UCombatComponent, EquipedWeapon);
+	//DOREPLIFETIME(UCombatComponent, EquipedWeapon);
 }
 
 

@@ -2,5 +2,6 @@
 #include "E:/Unreal Project/ShootGame/Plugins/Multiplayer/Intermediate/Build/Win64/UnrealEditor/Inc/Multiplayer/UHT/MenuWidget.gen.cpp"
 #include "E:/Unreal Project/ShootGame/Plugins/Multiplayer/Intermediate/Build/Win64/UnrealEditor/Inc/Multiplayer/UHT/Multiplayer.init.gen.cpp"
 #include "E:/Unreal Project/ShootGame/Plugins/Multiplayer/Intermediate/Build/Win64/UnrealEditor/Inc/Multiplayer/UHT/MultiplayerSessionSubsystem.gen.cpp"
+#include "E:/Unreal Project/ShootGame/Plugins/Multiplayer/Source/Multiplayer/Private/MenuWidget.cpp"
 #include "E:/Unreal Project/ShootGame/Plugins/Multiplayer/Source/Multiplayer/Private/Multiplayer.cpp"
 #include "E:/Unreal Project/ShootGame/Plugins/Multiplayer/Source/Multiplayer/Private/MultiplayerSessionSubsystem.cpp"

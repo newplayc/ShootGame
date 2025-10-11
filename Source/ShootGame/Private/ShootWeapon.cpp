@@ -62,23 +62,6 @@ void AShootWeapon::SetWeaponWidgetVisibility(bool NewVisibility) const
 void AShootWeapon::ChangeWeaponState() const
 {
 	
-	ENetRole RoleNow = GetLocalRole();
-	FString RoleText;
-	switch (RoleNow)
-	{
-	case ROLE_Authority :
-		RoleText = "Role Authority";
-		break;
-	case ROLE_AutonomousProxy :
-		RoleText = "Role Autonomous Proxy";
-		break;
-	case ROLE_SimulatedProxy :
-		RoleText = "Role Simulated Proxy";
-		break;
-		default:
-		break;
-	}
-	UE_LOG(LogTemp  , Warning , TEXT("Im %s") , *RoleText);
 	switch (NowWeaponState)
 	{
 	case EWeaponState::Picked :
