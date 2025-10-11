@@ -65,7 +65,7 @@ void UShootAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallb
 		}
 		else
 		{
-			// 死了 重生之类的
+			TargetCharacter->Died();
 		}
 	}
 	

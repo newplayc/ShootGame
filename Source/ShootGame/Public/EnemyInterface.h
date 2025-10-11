@@ -23,7 +23,7 @@ class SHOOTGAME_API IEnemyInterface
 
 public:
 	UFUNCTION(BlueprintNativeEvent)
-	FName GetNearBoneWithBullet(FVector HitLocation);
+	FName GetNearBoneWithBullet(const FVector_NetQuantize & HitLocation);
 
 	UFUNCTION(BlueprintNativeEvent)
 	bool IsDead();

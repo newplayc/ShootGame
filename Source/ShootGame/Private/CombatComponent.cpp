@@ -78,6 +78,7 @@ void UCombatComponent::Fire()
 		{
 			Hit.ImpactPoint = EndLocation;
 		}
+		
 		ServerFire(Hit.ImpactPoint);
 	}
 	
@@ -149,9 +150,9 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-//	DOREPLIFETIME(UCombatComponent, bIsEquiped);
+	DOREPLIFETIME(UCombatComponent, bIsEquiped);
 	DOREPLIFETIME(UCombatComponent, bIsAiming);
-	//DOREPLIFETIME(UCombatComponent, EquipedWeapon);
+	DOREPLIFETIME(UCombatComponent, EquipedWeapon);
 }
 
 

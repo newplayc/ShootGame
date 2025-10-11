@@ -46,6 +46,8 @@ struct FBodyDamage
 	}
 
 };
+
+
 USTRUCT(BlueprintType)
 struct FEffectParams
 {

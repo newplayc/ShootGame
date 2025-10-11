@@ -15,5 +15,7 @@ class SHOOTGAME_API AAShootGameMode : public AGameModeBase
 	GENERATED_BODY()
 
 public:
-	
+	void PlayerElim(ACharacter * DCharacter  , APlayerController * DController);
+
+	void ReLifePlayer(APlayerController * RPlayerController);
 };

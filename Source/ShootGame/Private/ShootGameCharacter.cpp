@@ -4,6 +4,7 @@
 #include "ShootGame/Public/ShootGameCharacter.h"
 
 #include "AbilitySystemComponent.h"
+#include "AShootGameMode.h"
 #include "CombatComponent.h"
 #include "ShootAbilitySystemComponent.h"
 #include "ShootAttributeSet.h"
@@ -13,8 +14,10 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "ShootGame/ShootGame.h"
 #include "ShootGame/Public/ShootWeapon.h"
 
 
@@ -22,11 +25,19 @@ AShootGameCharacter::AShootGameCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	
 	bReplicates = true;
 	AActor::SetReplicateMovement(true);
 
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera , ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Bullet , ECR_Overlap);
+	GetMesh()->SetGenerateOverlapEvents(true);
+	
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera , ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Bullet , ECR_Ignore);
+	
+
 	
 	NetUpdateFrequency = 100;
 	MinNetUpdateFrequency = 40;
@@ -43,10 +54,12 @@ AShootGameCharacter::AShootGameCharacter()
 	
 	CombatComp = CreateDefaultSubobject<UCombatComponent>("CombatComponent");
 	CombatComp->SetIsReplicated(true);
-
 	
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
+
+
+	
 }
 
 
@@ -121,9 +134,7 @@ void AShootGameCharacter::InitAttributes()
 
 void AShootGameCharacter::InitAbilityInfo()
 {
-
-
-
+	
 	if(AShootPlayerState * PS = Cast<AShootPlayerState>(GetPlayerState()))
 	{
 		ASC = Cast<UShootAbilitySystemComponent>(PS->GetAbilitySystemComponent());
@@ -140,7 +151,6 @@ void AShootGameCharacter::InitAbilityInfo()
 	{
 		InitAttributes();
 	}
-	
 	APlayerController * PC =  Cast<APlayerController>(GetController());
 	if(PC)
 	{
@@ -150,6 +160,38 @@ void AShootGameCharacter::InitAbilityInfo()
 		}
 	}
 }
+
+
+
+void AShootGameCharacter::ReSpawnPlayer()
+{
+
+	APlayerController * PlayerController = Cast<APlayerController>(GetController());
+	AAShootGameMode * GameMode = Cast<AAShootGameMode>( UGameplayStatics::GetGameMode(this));
+	if(GameMode)
+	{
+		GameMode->PlayerElim(this , PlayerController);
+		GameMode->ReLifePlayer(PlayerController);
+	}
+}
+
+void AShootGameCharacter::Died()
+{
+	
+	bDead = true;
+	PlayDeathMontage();
+
+	
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->DisableMovement();
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+
+
+	
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle , this , &ThisClass::ReSpawnPlayer , 3,false);
+} 
 
 
 void AShootGameCharacter::Fire()
@@ -192,7 +234,6 @@ void AShootGameCharacter::ServerAim_Implementation(bool NewAim)
 		CombatComp->SetAim(NewAim);	
 	}
 }
-
 
 void AShootGameCharacter::EquipWeapon()
 {
@@ -260,7 +301,7 @@ UAttributeSet* AShootGameCharacter::GetAttribute() const
 	return nullptr;
 }
 
-FName AShootGameCharacter::GetNearBoneWithBullet_Implementation(FVector HitLocation)
+FName AShootGameCharacter::GetNearBoneWithBullet_Implementation(const FVector_NetQuantize &  HitLocation)
 {
 	FName RetName;
 	float MinDis = 999999999.f;
@@ -323,6 +364,8 @@ void AShootGameCharacter::GetAOffest(float DeltaTime)
 	{
 		AimRotation =  GetBaseAimRotation();
 	}
+
+	
 
 	
 	FRotator MeshRotation = UKismetMathLibrary::MakeRotFromX(GetActorForwardVector());

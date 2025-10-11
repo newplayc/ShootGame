@@ -41,7 +41,16 @@ public:
 	ETurnState GetTurnState()const {return TurnState;};
 	FTransform GetWeaponLeftHandSocket() const;
 	void InitAbilityInfo();
+	UFUNCTION()
+	void ReSpawnPlayer();
+	void Died();
 
+	UPROPERTY(EditDefaultsOnly)
+	float ReLifeDelay = 4;
+
+	
+
+	
 	UPROPERTY(Replicated)
 	bool bDead;
 	
@@ -68,7 +77,7 @@ public:
 	
 	virtual UAbilitySystemComponent * GetAbilitySystemComponent() const override;
 	UAttributeSet * GetAttribute() const;
-	virtual FName GetNearBoneWithBullet_Implementation(FVector HitLocation) override;
+	virtual FName GetNearBoneWithBullet_Implementation(const FVector_NetQuantize& HitLocation) override;
 	virtual bool IsDead_Implementation() override;
 	
 	UFUNCTION(NetMulticast , Unreliable)

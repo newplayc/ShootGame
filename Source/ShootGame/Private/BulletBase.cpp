@@ -7,10 +7,10 @@
 #include "AbilitySystemInterface.h"
 #include "EnemyInterface.h"
 #include "NiagaraFunctionLibrary.h"
-#include "ShootAttributeSet.h"
 #include "ShootBlueprintFunctionLibrary.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "ShootGame/ShootGame.h"
 #include "ShootGame/ShootGameplayTags.h"
 
 ABulletBase::ABulletBase()
@@ -24,12 +24,17 @@ ABulletBase::ABulletBase()
 	RootComponent = BulletMesh;
 	BulletMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
 	BulletMesh->SetCollisionEnabled(ECollisionEnabled::Type::PhysicsOnly);
+
 	
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>("BoxCollision");
+	BoxCollision ->SetCollisionResponseToAllChannels(ECR_Overlap);
 	BoxCollision->SetupAttachment(RootComponent);
-	BoxCollision->SetCollisionObjectType(ECC_WorldDynamic);
+	BoxCollision->SetCollisionObjectType(ECC_Bullet);
+	BoxCollision->SetUseCCD(true);
+	BoxCollision->SetGenerateOverlapEvents(true);
 	
 	ProMovement = CreateDefaultSubobject<UProjectileMovementComponent>("ProMovementComponent");
+	ProMovement->bSweepCollision = true;
 }
 
 void ABulletBase::BeginPlay()
@@ -54,6 +59,15 @@ void ABulletBase::Destroyed()
 void ABulletBase::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+
+	
+	
+	GEngine->AddOnScreenDebugMessage(-1,
+		3.f,
+		FColor::Red ,
+		FString::Printf(TEXT("bFromSweep %d  ActorName : %s OverlapCompent %s OtherComp: %s Bone Name: %s"), bFromSweep ,*OtherActor->GetName(), *OverlappedComponent->GetName() , *OtherComp->GetName()  , *SweepResult.BoneName.ToString()));
+
+	
 	if(OtherActor == GetOwner())
 	{
 		return;
@@ -63,10 +77,8 @@ void ABulletBase::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 		if(IAbilitySystemInterface * AbilitySystemInterface = Cast<IAbilitySystemInterface>(OtherActor))
 		{
 			EffectParams.TargetASC = AbilitySystemInterface->GetAbilitySystemComponent();
-			
-			FName IncomingDamageName = FName( UShootAttributeSet::GetInComingDamageAttribute().GetName());
 			FName HitBoneName =  IEnemyInterface::Execute_GetNearBoneWithBullet(OtherActor , SweepResult.ImpactPoint);
-			float Damage = EffectParams.BodyDamage.GetDamage(HitBoneName);\
+			float Damage = EffectParams.BodyDamage.GetDamage(HitBoneName);
 			FGameplayTag ShootWeapontag = FShootGameplayTags::GetShootTags().ShootWeaponDamageTag;
 			UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(EffectParams.ApplyEffect ,ShootWeapontag  , Damage);
 			UShootBlueprintFunctionLibrary::ApplyEffectParams(EffectParams);

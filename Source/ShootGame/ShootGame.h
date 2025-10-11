@@ -3,4 +3,4 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
+#define ECC_Bullet ECC_GameTraceChannel1
