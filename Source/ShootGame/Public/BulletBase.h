@@ -18,6 +18,7 @@ public:
 	ABulletBase();
 	
 	FEffectParams EffectParams;
+	
 
 protected:
 	

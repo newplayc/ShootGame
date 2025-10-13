@@ -47,6 +47,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly ,Category = "Variable")
 	ETurnState TurnState;
+	
+	UPROPERTY(BlueprintReadOnly ,Category = "Variable")
+	bool bIsReLoad;
 	 
 	
 };

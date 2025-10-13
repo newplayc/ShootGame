@@ -19,6 +19,8 @@ ABulletBase::ABulletBase()
 
 	bReplicates = true;
 	SetReplicatingMovement(true);
+
+	AActor::SetLifeSpan(10.f);
 	
 	BulletMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BulletMesh"));
 	RootComponent = BulletMesh;
@@ -59,14 +61,7 @@ void ABulletBase::Destroyed()
 void ABulletBase::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-
 	
-	
-	GEngine->AddOnScreenDebugMessage(-1,
-		3.f,
-		FColor::Red ,
-		FString::Printf(TEXT("bFromSweep %d  ActorName : %s OverlapCompent %s OtherComp: %s Bone Name: %s"), bFromSweep ,*OtherActor->GetName(), *OverlappedComponent->GetName() , *OtherComp->GetName()  , *SweepResult.BoneName.ToString()));
-
 	
 	if(OtherActor == GetOwner())
 	{

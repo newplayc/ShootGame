@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ShootUserWidgetController.h"
 #include "GameFramework/HUD.h"
 #include "ShootHud.generated.h"
 
@@ -48,8 +49,7 @@ public:
 	FAimCrossHair AimCrossHair;
 
 	void InitGameWidget(class UShootAbilitySystemComponent *InASC  ,class UShootAttributeSet * InAS);
-
-	
+	UShootUserWidgetController  * GetShootUserWidgetController(const  FWidgetControllerParams & InWCP = FWidgetControllerParams());
 protected:
 
 	UPROPERTY(EditDefaultsOnly)
@@ -78,6 +78,4 @@ protected:
 	
 	virtual void DrawHUD() override;
 	void DrawCrossHair();
-	
-	UShootUserWidgetController  * GetShootUserWidgetController(const  FWidgetControllerParams & InWCP);
 };

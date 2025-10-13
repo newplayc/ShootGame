@@ -5,6 +5,7 @@
 
 #include "ShootGameCharacter.h"
 #include "ShootGameController.h"
+#include "ShootUserWidgetController.h"
 #include "ShootWeapon.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -12,7 +13,6 @@
 #include "Net/UnrealNetwork.h"
 
 #define TRACE_LENGTH 30000
-
 
 UCombatComponent::UCombatComponent()
 {
@@ -22,7 +22,6 @@ UCombatComponent::UCombatComponent()
 void UCombatComponent::SetController(AShootGameController* InController)
 {
 	CharacterController = InController;
-	
 	if(CharacterController)
 	if(AShootHud * Hud = Cast<AShootHud>(CharacterController->GetHUD()))
 	{
@@ -37,26 +36,71 @@ void UCombatComponent::EquipUpWeapon(AShootWeapon* EquipWeapon)
 		EquipedWeapon = EquipWeapon;
 		if (const USkeletalMeshSocket * MeshSocket =  OwnerCharacter->GetMesh()->GetSocketByName(OwnerCharacter->GetWeaponSocketName()))
 		{
+			EquipedWeapon->GetMesh()->SetSimulatePhysics(false);
 			MeshSocket->AttachActor(EquipedWeapon , OwnerCharacter->GetMesh());
 			bIsEquiped = true;
 			EquipChange();
 			EquipedWeapon->SetOwner(OwnerCharacter);
 			EquipedWeapon->SetWeaponState(EWeaponState::Equipped);
 		}
-		
 		SetHudParams();
+		if(PlayerHUD)
+		{
+			EquipedWeapon->OnRepAmmoChange.BindUObject(this , &ThisClass::WeaponRep);
+		}
 	}
 }
 
-
-void UCombatComponent::SetHudParams()
+void UCombatComponent::SetHudParams() const
 {
-		if(PlayerHUD){	
+		if(PlayerHUD)
+		{	
 			PlayerHUD->AimCrossHair = EquipedWeapon->WeaponAimCrossHair;
 			PlayerHUD->bDrawAimCrossHair = true;
+			PlayerHUD->GetShootUserWidgetController()->OnAmmoChanged.Broadcast(EquipedWeapon->GetAmmo());
+			PlayerHUD->GetShootUserWidgetController()->OnMaxAmmoChanged.Broadcast(AmmoCapacity);
 		}
 }
 
+
+void UCombatComponent::ServerReloadAmmo_Implementation()
+{
+	if(AmmoCapacity <=0 || EquipedWeapon->IsFullAmmo())return;
+
+	bIsReLoad  =true;
+	
+	const int32 NA = EquipedWeapon->NeedFullAmmo();
+	
+	if(AmmoCapacity >= NA){
+		SpendAmmo = NA;
+	}
+	else{
+		SpendAmmo = AmmoCapacity; 
+	}
+	if(OwnerCharacter)
+	{
+		OwnerCharacter->PlayReLoadMontage();
+	}
+	
+	ReLoadFinish();
+	GetWorld()->GetTimerManager().SetTimer(ReLoadTimerHandle,this , &ThisClass::ReLoadTimerFinish , ReLoadTime , false);
+}
+
+void UCombatComponent::WeaponRep(const int32 Ammo) const
+{
+	if(PlayerHUD)
+	{
+		PlayerHUD->GetShootUserWidgetController()->OnAmmoChanged.Broadcast(Ammo);
+	}
+}
+
+void UCombatComponent::On_RepAmmoCapacity(const int32 & OldAmmoCapacity) const
+{
+	if(PlayerHUD )
+	{
+		PlayerHUD->GetShootUserWidgetController()->OnMaxAmmoChanged.Broadcast(AmmoCapacity);
+	}
+}
 
 
 void UCombatComponent::Fire()
@@ -81,18 +125,37 @@ void UCombatComponent::Fire()
 		
 		ServerFire(Hit.ImpactPoint);
 	}
-	
 }
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& FireImpact)
 {
 	if (EquipedWeapon)
 	{
-		EquipedWeapon->Fire(FireImpact);
+		if(!EquipedWeapon->Fire(FireImpact)){
+			FailFire();
+			return;
+		}
+		if(OwnerCharacter)
+		OwnerCharacter->PlayFireMontage();
+	}
+}
+
+void UCombatComponent::ReLoadFinish_Implementation()
+{
+	if(EquipedWeapon)
+	{
+		EquipedWeapon->PlayReloadAudio();
 	}
 }
 
 
-void UCombatComponent::EquipChange()
+
+void UCombatComponent::FailFire_Implementation()
+{
+	EquipedWeapon->PlayBulletEmptyAudio();
+}
+
+
+void UCombatComponent::EquipChange() const
 {
 	if (!OwnerCharacter)return;
 	switch (bIsEquiped)
@@ -108,12 +171,12 @@ void UCombatComponent::EquipChange()
 	}
 }
 
-void UCombatComponent::OnRep_Equip()
+void UCombatComponent::OnRep_Equip() const
 {
-		EquipChange();
+	EquipChange();
 }
 
-void UCombatComponent::SetAim(bool NewAim)
+void UCombatComponent::SetAim(const bool NewAim)
 {
 	bIsAiming = NewAim;
 	if(PlayerHUD)
@@ -122,13 +185,47 @@ void UCombatComponent::SetAim(bool NewAim)
 	}
 }
 
-
-void UCombatComponent::OnRep_EquipWeapon()
+void UCombatComponent::OnRep_EquipWeapon( AShootWeapon * OldWeapon) const
 {
-	EquipedWeapon->SetWeaponState(EWeaponState::Equipped);
+	if(OldWeapon!=nullptr)
+	{
+		OldWeapon->GetMesh()->SetSimulatePhysics(true);
+		OldWeapon->GetMesh()->SetEnableGravity(true);
+		OldWeapon->SetWeaponState(EWeaponState::Spare);	
+	}
+	if(EquipedWeapon !=nullptr)
+	{
+		EquipedWeapon->GetMesh()->SetSimulatePhysics(false);
+		EquipedWeapon->SetWeaponState(EWeaponState::Equipped);	
+	}
+	
 }
 
+void UCombatComponent::ServerDropWeapon_Implementation()
+{
+	EquipedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	EquipedWeapon->SetOwner(nullptr);
+	EquipedWeapon->GetMesh()->SetSimulatePhysics(true);
+	EquipedWeapon->GetMesh()->SetEnableGravity(true);
+	EquipedWeapon->SetWeaponState(EWeaponState::Spare);
+	
+	bIsEquiped = false;
+	EquipChange();
 
+	EquipedWeapon = nullptr;
+	bIsAiming = false;
+}
+
+void UCombatComponent::DropWeapon()
+{
+	if(PlayerHUD){
+		EquipedWeapon->OnRepAmmoChange.Unbind();
+		PlayerHUD->GetShootUserWidgetController()->OnAmmoChanged.Broadcast(0);
+		bIsEquiped = false;
+		EquipChange();
+	}
+	ServerDropWeapon();
+}
 
 void UCombatComponent::BeginPlay()
 {
@@ -147,13 +244,24 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	}
 }
 
+
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UCombatComponent, bIsEquiped);
 	DOREPLIFETIME(UCombatComponent, bIsAiming);
 	DOREPLIFETIME(UCombatComponent, EquipedWeapon);
+	DOREPLIFETIME(UCombatComponent , bIsReLoad);
+	DOREPLIFETIME_CONDITION_NOTIFY(UCombatComponent , AmmoCapacity ,COND_OwnerOnly , REPNOTIFY_OnChanged);
 }
+
+void UCombatComponent::ReLoadTimerFinish()
+{
+	EquipedWeapon->AddAmmo(SpendAmmo);
+	AmmoCapacity -= SpendAmmo;
+	bIsReLoad = false;
+}
+
 
 
 

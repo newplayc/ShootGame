@@ -72,7 +72,7 @@ class SHOOTGAME_API AShootWeaponFire : public AShootWeapon
 {
 	GENERATED_BODY()
 public:
-	virtual void Fire(const FVector_NetQuantize& FireImpact)  override;
+	virtual bool Fire(const FVector_NetQuantize& FireImpact)  override;
 	
 protected:
 	UPROPERTY(EditDefaultsOnly)

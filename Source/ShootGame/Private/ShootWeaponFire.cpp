@@ -9,10 +9,10 @@
 #include "Kismet/KismetMathLibrary.h"
 
 
-void AShootWeaponFire::Fire(const FVector_NetQuantize& FireImpact)
+bool AShootWeaponFire::Fire(const FVector_NetQuantize& FireImpact)
 {
-	Super::Fire(FireImpact);
-
+	
+	if(!Super::Fire(FireImpact))return false;
 	
 	FVector  MuzzleLocation =  WeaponMesh->GetSocketLocation(GetMuzzleSocketName());
 	FRotator SpawnRotation  = UKismetMathLibrary::GetDirectionUnitVector(MuzzleLocation , FireImpact).Rotation();
@@ -30,6 +30,9 @@ void AShootWeaponFire::Fire(const FVector_NetQuantize& FireImpact)
 	
 	SpawnBullet->EffectParams = MakeDefaultEffectParam();
 	SpawnBullet->FinishSpawning(SpawnTransform);
+
+	SpendAmmo();
+	return true;
 }
 
 FEffectParams AShootWeaponFire::MakeDefaultEffectParam() const

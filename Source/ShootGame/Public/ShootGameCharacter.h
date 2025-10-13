@@ -23,7 +23,6 @@ enum class ETurnState : uint8
 	NoTurning UMETA(DisplayName ="不旋转")
 };
 
-
 UCLASS()
 class SHOOTGAME_API AShootGameCharacter : public ACharacter ,public IAbilitySystemInterface ,public IEnemyInterface
 {
@@ -41,15 +40,15 @@ public:
 	ETurnState GetTurnState()const {return TurnState;};
 	FTransform GetWeaponLeftHandSocket() const;
 	void InitAbilityInfo();
+	bool GetIsReLoad() const;
+	
 	UFUNCTION()
 	void ReSpawnPlayer();
+	
 	void Died();
-
+	
 	UPROPERTY(EditDefaultsOnly)
 	float ReLifeDelay = 4;
-
-	
-
 	
 	UPROPERTY(Replicated)
 	bool bDead;
@@ -59,9 +58,6 @@ public:
 	
 	UFUNCTION(NetMulticast ,Reliable)
 	void PlayFireMontage();
-
-	UFUNCTION(Server, Reliable)
-	void ServerFire();
 	
 	UFUNCTION(BlueprintCallable)
 	void Aim(bool NewAim);
@@ -71,9 +67,16 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void EquipWeapon();
+
+	UFUNCTION(BlueprintCallable)
+	void ReLoadAmmo();
+
+	UFUNCTION(BlueprintCallable)
+	void DropWeapon();
 	
 	UFUNCTION(Server , Reliable)
 	void EquipWeaponOnServer();
+
 	
 	virtual UAbilitySystemComponent * GetAbilitySystemComponent() const override;
 	UAttributeSet * GetAttribute() const;
@@ -86,7 +89,8 @@ public:
 	UFUNCTION(NetMulticast ,Unreliable)
 	void PlayDeathMontage();
 
-	
+	UFUNCTION(NetMulticast , Unreliable)
+	void PlayReLoadMontage();
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -96,7 +100,6 @@ protected:
 	virtual  void PossessedBy(AController* NewController) override;
 	virtual  void OnRep_PlayerState() override;
 	void InitAttributes();
-
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	TObjectPtr<UCameraComponent>CameraComp;
@@ -115,6 +118,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	UAnimMontage* FireMontage;
+
+	UPROPERTY(EditDefaultsOnly)
+	UAnimMontage* CrouchFireMontage;
 	
 	UPROPERTY(Replicated)
 	FRotator AimRotation;
@@ -124,9 +130,6 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_TouchWeapon(AShootWeapon * LastTouchWeapon) const;
-
-
-	
 	
 	UPROPERTY(EditDefaultsOnly)
 	UAnimMontage * ReactMontage;
@@ -134,17 +137,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	UAnimMontage * DeathMontage;
 
-	
-
-
+	UPROPERTY(EditDefaultsOnly)
+	UAnimMontage * ReLoadMontage;
 	
 	void GetAOffest(float DeltaTime);
-
-	
 	float AO_Yaw;
 	float AO_Pitch;
 
-	
 private:
 	class UShootAbilitySystemComponent * ASC;
 	class UShootAttributeSet * AS;

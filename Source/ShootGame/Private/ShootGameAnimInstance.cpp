@@ -26,6 +26,7 @@ void UShootGameAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsEquipped = NowCharacter->GetIsEquip();
 		bIsCrouch = NowCharacter->bIsCrouched;
 		bIsAiming = NowCharacter->GetIsAim();
+		bIsReLoad = NowCharacter->GetIsReLoad();
 		
 		// 摄像机方向 和 速度方向 做差值
 		FRotator AimRotator = NowCharacter->GetBaseAimRotation();

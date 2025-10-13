@@ -36,8 +36,7 @@ AShootGameCharacter::AShootGameCharacter()
 	
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera , ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Bullet , ECR_Ignore);
-	
-
+	GetCapsuleComponent()->SetGenerateOverlapEvents(false);
 	
 	NetUpdateFrequency = 100;
 	MinNetUpdateFrequency = 40;
@@ -57,11 +56,15 @@ AShootGameCharacter::AShootGameCharacter()
 	
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
-
-
 	
 }
 
+
+void AShootGameCharacter::PlayReLoadMontage_Implementation()
+{
+	FName SectionName = GetIsAim() ? FName("Ironsights") : FName("Hip");
+	PlayAnimMontage(ReLoadMontage , 1 , SectionName);
+}
 
 void AShootGameCharacter::BeginPlay()
 {
@@ -108,7 +111,6 @@ FTransform AShootGameCharacter::GetWeaponLeftHandSocket() const
 	FVector OutLocation;
 	FRotator OutRotation;
 	GetMesh()->TransformToBoneSpace(FName("hand_r") , LeftHand.GetLocation() , LeftHand.GetRotation().Rotator() , OutLocation , OutRotation);
-	
 	return FTransform(OutRotation , OutLocation , FVector());
 }
 
@@ -151,24 +153,30 @@ void AShootGameCharacter::InitAbilityInfo()
 	{
 		InitAttributes();
 	}
-	APlayerController * PC =  Cast<APlayerController>(GetController());
-	if(PC)
+	if(APlayerController * PC =  Cast<APlayerController>(GetController()))
 	{
-		if(AShootHud * hud = Cast<AShootHud>(PC->GetHUD()))
+		if(AShootHud * HUD = Cast<AShootHud>(PC->GetHUD()))
 		{
-			hud->InitGameWidget(ASC , AS);	
+			HUD->InitGameWidget(ASC , AS);	
 		}
 	}
 }
 
+bool AShootGameCharacter::GetIsReLoad() const
+{
+	if(CombatComp && CombatComp->GetIsEquipped())
+	{
+		return CombatComp->GetIsReLoad();
+	}
+	return false;
+}
 
 
 void AShootGameCharacter::ReSpawnPlayer()
 {
 
 	APlayerController * PlayerController = Cast<APlayerController>(GetController());
-	AAShootGameMode * GameMode = Cast<AAShootGameMode>( UGameplayStatics::GetGameMode(this));
-	if(GameMode)
+	if(AAShootGameMode * GameMode = Cast<AAShootGameMode>( UGameplayStatics::GetGameMode(this)))
 	{
 		GameMode->PlayerElim(this , PlayerController);
 		GameMode->ReLifePlayer(PlayerController);
@@ -180,15 +188,9 @@ void AShootGameCharacter::Died()
 	
 	bDead = true;
 	PlayDeathMontage();
-
-	
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->DisableMovement();
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-
-
-	
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle , this , &ThisClass::ReSpawnPlayer , 3,false);
 } 
@@ -196,9 +198,9 @@ void AShootGameCharacter::Died()
 
 void AShootGameCharacter::Fire()
 {
+	
 	if (CombatComp && CombatComp->GetIsEquipped())
 	{
-		ServerFire();
 		CombatComp->Fire();
 	}
 }
@@ -206,13 +208,11 @@ void AShootGameCharacter::Fire()
 void AShootGameCharacter::PlayFireMontage_Implementation()
 {
 	FName SectionName = GetIsAim() ? FName("Ironsights") : FName("Hip");
+	if(bIsCrouched)
+		PlayAnimMontage(CrouchFireMontage , 1, SectionName);
+	else
 	PlayAnimMontage(FireMontage , 1 , SectionName);
 	
-}
-
-void AShootGameCharacter::ServerFire_Implementation()
-{
-	PlayFireMontage();
 }
 
 
@@ -241,13 +241,29 @@ void AShootGameCharacter::EquipWeapon()
 	{
 		auto temp = TouchWeapon;
 		TouchWeapon = nullptr;
-		
 		CombatComp->EquipUpWeapon(temp);
+		
 		if(!HasAuthority())
-			
 		EquipWeaponOnServer();
 	}
 }
+
+void AShootGameCharacter::ReLoadAmmo()
+{
+	if(CombatComp && CombatComp->GetIsEquipped())
+	{
+		CombatComp->ServerReloadAmmo();
+	}
+}
+
+void AShootGameCharacter::DropWeapon()
+{
+	if(CombatComp && CombatComp->GetIsEquipped())
+	{
+		CombatComp->DropWeapon();
+	}
+}
+
 
 void AShootGameCharacter::EquipWeaponOnServer_Implementation()
 {
@@ -366,12 +382,10 @@ void AShootGameCharacter::GetAOffest(float DeltaTime)
 	}
 
 	
-
-	
 	FRotator MeshRotation = UKismetMathLibrary::MakeRotFromX(GetActorForwardVector());
 	AO_Yaw = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation , MeshRotation).Yaw;
 	AO_Pitch = GetBaseAimRotation().Pitch;
-	
+
 	
 	if (!bUseControllerRotationYaw)
 	{
@@ -397,6 +411,5 @@ void AShootGameCharacter::GetAOffest(float DeltaTime)
 		FVector2D OutRange(-90.f, 0.f);
 		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange,OutRange,AO_Pitch);
 	}
-	
 }
 

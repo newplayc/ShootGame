@@ -9,6 +9,7 @@
  * 
  */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttribueChanged , float , NewAttribute);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAmmoNumChanged,  int32 , AmmoNum);
 
 USTRUCT(BlueprintType)
 struct FWidgetControllerParams
@@ -27,15 +28,13 @@ struct FWidgetControllerParams
 	
 };
 
-
 UCLASS()
 class SHOOTGAME_API UShootUserWidgetController : public UObject
 {
 	GENERATED_BODY()
 public:
-	
 	void InitShootWidetController(const FWidgetControllerParams & InWidgetParams);
-
+	
 	void InitBroadCast();
 	
 	UPROPERTY(BlueprintAssignable)
@@ -43,6 +42,13 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnAttribueChanged OnMaxHealhChanged;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnAmmoNumChanged OnAmmoChanged;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnAmmoNumChanged OnMaxAmmoChanged;
+
 	
 protected:
 	
