@@ -10,6 +10,8 @@
  */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttribueChanged , float , NewAttribute);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAmmoNumChanged,  int32 , AmmoNum);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponIcon , UTexture2D* , WaeponIcon);
+
 
 USTRUCT(BlueprintType)
 struct FWidgetControllerParams
@@ -36,6 +38,9 @@ public:
 	void InitShootWidetController(const FWidgetControllerParams & InWidgetParams);
 	
 	void InitBroadCast();
+
+	UPROPERTY(BlueprintAssignable)
+	FOnWeaponIcon OnWeaponIconChange;
 	
 	UPROPERTY(BlueprintAssignable)
 	FOnAttribueChanged OnHealthChanged;
@@ -48,7 +53,7 @@ public:
 	
 	UPROPERTY(BlueprintAssignable)
 	FOnAmmoNumChanged OnMaxAmmoChanged;
-
+ 
 	
 protected:
 	

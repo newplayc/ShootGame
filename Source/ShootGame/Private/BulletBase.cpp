@@ -21,30 +21,35 @@ ABulletBase::ABulletBase()
 	SetReplicatingMovement(true);
 
 	AActor::SetLifeSpan(10.f);
-	
-	BulletMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BulletMesh"));
-	RootComponent = BulletMesh;
-	BulletMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
-	BulletMesh->SetCollisionEnabled(ECollisionEnabled::Type::PhysicsOnly);
 
 	
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>("BoxCollision");
-	BoxCollision ->SetCollisionResponseToAllChannels(ECR_Overlap);
+	BoxCollision->SetCollisionResponseToAllChannels(ECR_Block);
 	BoxCollision->SetupAttachment(RootComponent);
+	BoxCollision->SetCollisionEnabled(ECollisionEnabled::Type::QueryOnly);
 	BoxCollision->SetCollisionObjectType(ECC_Bullet);
 	BoxCollision->SetUseCCD(true);
-	BoxCollision->SetGenerateOverlapEvents(true);
+	BoxCollision->SetGenerateOverlapEvents(false);
+	BoxCollision->SetNotifyRigidBodyCollision(true);
+	RootComponent = BoxCollision;
+	
+	BulletMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BulletMesh"));
+	BulletMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+	BulletMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	BulletMesh->SetupAttachment(RootComponent);
+
 	
 	ProMovement = CreateDefaultSubobject<UProjectileMovementComponent>("ProMovementComponent");
-	ProMovement->bSweepCollision = true;
 }
+
+
 
 void ABulletBase::BeginPlay()
 {
 	Super::BeginPlay();
 	if(HasAuthority())
 	{
-		BoxCollision->OnComponentBeginOverlap.AddDynamic(this , &ThisClass::OnOverlap);
+		BoxCollision->OnComponentHit.AddDynamic(this , &ThisClass::OnHit);
 	}
 }
 
@@ -58,11 +63,10 @@ void ABulletBase::Destroyed()
 
 
 
-void ABulletBase::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+
+void ABulletBase::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	
-	
 	if(OtherActor == GetOwner())
 	{
 		return;
@@ -72,7 +76,7 @@ void ABulletBase::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 		if(IAbilitySystemInterface * AbilitySystemInterface = Cast<IAbilitySystemInterface>(OtherActor))
 		{
 			EffectParams.TargetASC = AbilitySystemInterface->GetAbilitySystemComponent();
-			FName HitBoneName =  IEnemyInterface::Execute_GetNearBoneWithBullet(OtherActor , SweepResult.ImpactPoint);
+			FName HitBoneName =  IEnemyInterface::Execute_GetNearBoneWithBullet(OtherActor , Hit.ImpactPoint);
 			float Damage = EffectParams.BodyDamage.GetDamage(HitBoneName);
 			FGameplayTag ShootWeapontag = FShootGameplayTags::GetShootTags().ShootWeaponDamageTag;
 			UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(EffectParams.ApplyEffect ,ShootWeapontag  , Damage);

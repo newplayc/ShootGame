@@ -23,10 +23,13 @@ void UCombatComponent::SetController(AShootGameController* InController)
 {
 	CharacterController = InController;
 	if(CharacterController)
-	if(AShootHud * Hud = Cast<AShootHud>(CharacterController->GetHUD()))
 	{
-		PlayerHUD = Hud;
+		if(AShootHud * Hud = Cast<AShootHud>(CharacterController->GetHUD()))
+		{
+			PlayerHUD = Hud;
+		}
 	}
+	
 }
 
 void UCombatComponent::EquipUpWeapon(AShootWeapon* EquipWeapon)
@@ -44,14 +47,11 @@ void UCombatComponent::EquipUpWeapon(AShootWeapon* EquipWeapon)
 			EquipedWeapon->SetWeaponState(EWeaponState::Equipped);
 		}
 		SetHudParams();
-		if(PlayerHUD)
-		{
-			EquipedWeapon->OnRepAmmoChange.BindUObject(this , &ThisClass::WeaponRep);
-		}
+	
 	}
 }
 
-void UCombatComponent::SetHudParams() const
+void UCombatComponent::SetHudParams()
 {
 		if(PlayerHUD)
 		{	
@@ -59,6 +59,10 @@ void UCombatComponent::SetHudParams() const
 			PlayerHUD->bDrawAimCrossHair = true;
 			PlayerHUD->GetShootUserWidgetController()->OnAmmoChanged.Broadcast(EquipedWeapon->GetAmmo());
 			PlayerHUD->GetShootUserWidgetController()->OnMaxAmmoChanged.Broadcast(AmmoCapacity);
+			PlayerHUD->GetShootUserWidgetController()->OnWeaponIconChange.Broadcast(EquipedWeapon->GetIcon());
+			
+			EquipedWeapon->OnRepAmmoChange.BindUObject(this , &ThisClass::WeaponRep);
+			DefaultFOV = OwnerCharacter->GetFoV();
 		}
 }
 
@@ -181,6 +185,16 @@ void UCombatComponent::SetAim(const bool NewAim)
 	bIsAiming = NewAim;
 	if(PlayerHUD)
 	{
+		if(bIsAiming)
+		{
+			DefaultFOV = OwnerCharacter->GetFoV();
+			OwnerCharacter->SetFoV(EquipedWeapon->GetAimFoV());
+		}
+		else
+		{
+			OwnerCharacter->SetFoV(DefaultFOV);
+		}
+		
 		PlayerHUD->bAim = NewAim;
 	}
 }
@@ -218,10 +232,14 @@ void UCombatComponent::ServerDropWeapon_Implementation()
 
 void UCombatComponent::DropWeapon()
 {
+	
 	if(PlayerHUD){
 		EquipedWeapon->OnRepAmmoChange.Unbind();
 		PlayerHUD->GetShootUserWidgetController()->OnAmmoChanged.Broadcast(0);
+		PlayerHUD->bDrawAimCrossHair = false;
+		PlayerHUD->GetShootUserWidgetController()->OnWeaponIconChange.Broadcast(nullptr);
 		bIsEquiped = false;
+		OwnerCharacter->SetFoV(DefaultFOV);
 		EquipChange();
 	}
 	ServerDropWeapon();
@@ -259,6 +277,10 @@ void UCombatComponent::ReLoadTimerFinish()
 {
 	EquipedWeapon->AddAmmo(SpendAmmo);
 	AmmoCapacity -= SpendAmmo;
+	if(PlayerHUD )
+	{
+		PlayerHUD->GetShootUserWidgetController()->OnMaxAmmoChanged.Broadcast(AmmoCapacity);
+	}
 	bIsReLoad = false;
 }
 

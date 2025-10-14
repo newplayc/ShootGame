@@ -74,7 +74,7 @@ protected:
 	UFUNCTION()
 	void OnRep_EquipWeapon( AShootWeapon * OldWeapon) const;
 
-	void SetHudParams() const;
+	void SetHudParams() ;
 
 	UFUNCTION(Client , Reliable)
 	void FailFire();
@@ -88,7 +88,9 @@ protected:
 
 	UFUNCTION()
 	void On_RepAmmoCapacity(const int32 & OldAmmoCapacity) const;
+
 	
+	float DefaultFOV;
 private:
 	UPROPERTY(ReplicatedUSing  = OnRep_EquipWeapon)
 	AShootWeapon * EquipedWeapon =  nullptr;
@@ -99,5 +101,5 @@ private:
 	void EquipChange() const;
 	FTimerHandle ReLoadTimerHandle;
 	int32 SpendAmmo= 0;
-	
+
 };

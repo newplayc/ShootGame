@@ -68,8 +68,6 @@ void UShootAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallb
 			TargetCharacter->Died();
 		}
 	}
-	
-	
 }
 
 

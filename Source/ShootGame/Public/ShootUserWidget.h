@@ -22,7 +22,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void SetWidetController(UShootUserWidgetController * InWC);
-
+	
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UShootUserWidgetController>WidgetController;
 	

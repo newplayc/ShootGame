@@ -31,12 +31,15 @@ AShootGameCharacter::AShootGameCharacter()
 	AActor::SetReplicateMovement(true);
 
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera , ECR_Ignore);
-	GetMesh()->SetCollisionResponseToChannel(ECC_Bullet , ECR_Overlap);
-	GetMesh()->SetGenerateOverlapEvents(true);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Bullet , ECR_Block);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::Type::QueryOnly);
+	GetMesh()->SetGenerateOverlapEvents(false);
 	
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera , ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Bullet , ECR_Ignore);
-	GetCapsuleComponent()->SetGenerateOverlapEvents(false);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::Type::QueryOnly);
+	GetCapsuleComponent()->SetGenerateOverlapEvents(true);
+
 	
 	NetUpdateFrequency = 100;
 	MinNetUpdateFrequency = 40;

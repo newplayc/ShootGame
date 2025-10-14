@@ -40,7 +40,8 @@ public:
 	virtual bool Fire(const FVector_NetQuantize& FireImpact);
 	void PlayReloadAudio() const;
 	USkeletalMeshComponent * GetMesh(){return WeaponMesh;};
-	
+	UTexture2D * GetIcon()const {return WeaponIcon;}
+	float GetAimFoV(){return AimFOV;}
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_Fire();
 
@@ -88,12 +89,19 @@ protected:
 
 	UPROPERTY(VisibleAnywhere , BlueprintReadOnly)
 	UAudioComponent * RelLoadComponent;
+
+	UPROPERTY(EditDefaultsOnly)
+	UTexture2D * WeaponIcon;
+
+	UPROPERTY(EditDefaultsOnly)
+	float AimFOV;
 	
 	UPROPERTY(EditDefaultsOnly)
 	int32 MaxAmmo = 30;
 	
 	UPROPERTY(ReplicatedUsing=On_RepAmmo ,EditDefaultsOnly)
 	int32 Ammo =  MaxAmmo;
+
 	
 	UFUNCTION()
 	void On_RepAmmo(const int32& oldAmmo) const;

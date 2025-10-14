@@ -54,7 +54,6 @@ AShootWeapon::AShootWeapon()
 	RelLoadComponent->bAutoActivate = false;
 }
 
-
 void AShootWeapon::AddAmmo(const int32 Ammos)
 {
 	Ammo = FMath::Min(MaxAmmo , Ammos + Ammo);

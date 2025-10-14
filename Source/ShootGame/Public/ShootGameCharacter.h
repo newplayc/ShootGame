@@ -5,6 +5,7 @@
 #include "AbilitySystemInterface.h"
 #include "CombatComponent.h"
 #include "EnemyInterface.h"
+#include "Camera/CameraComponent.h"
 #include "GameFramework/Character.h"
 #include "ShootGameCharacter.generated.h"
 
@@ -41,7 +42,8 @@ public:
 	FTransform GetWeaponLeftHandSocket() const;
 	void InitAbilityInfo();
 	bool GetIsReLoad() const;
-	
+	float GetFoV() const {return CameraComp->FieldOfView;}
+	void SetFoV(const float InFoV )  {CameraComp->SetFieldOfView(InFoV);}
 	UFUNCTION()
 	void ReSpawnPlayer();
 	
