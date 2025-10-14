@@ -34,6 +34,10 @@ void UCombatComponent::SetController(AShootGameController* InController)
 
 void UCombatComponent::EquipUpWeapon(AShootWeapon* EquipWeapon)
 {
+	if(EquipedWeapon != nullptr)
+	{
+		DropWeapon();
+	}
 	if (EquipWeapon && OwnerCharacter)
 	{
 		EquipedWeapon = EquipWeapon;
@@ -47,7 +51,6 @@ void UCombatComponent::EquipUpWeapon(AShootWeapon* EquipWeapon)
 			EquipedWeapon->SetWeaponState(EWeaponState::Equipped);
 		}
 		SetHudParams();
-	
 	}
 }
 
@@ -70,11 +73,8 @@ void UCombatComponent::SetHudParams()
 void UCombatComponent::ServerReloadAmmo_Implementation()
 {
 	if(AmmoCapacity <=0 || EquipedWeapon->IsFullAmmo())return;
-
 	bIsReLoad  =true;
-	
 	const int32 NA = EquipedWeapon->NeedFullAmmo();
-	
 	if(AmmoCapacity >= NA){
 		SpendAmmo = NA;
 	}
@@ -175,6 +175,9 @@ void UCombatComponent::EquipChange() const
 	}
 }
 
+
+
+
 void UCombatComponent::OnRep_Equip() const
 {
 	EquipChange();
@@ -182,22 +185,22 @@ void UCombatComponent::OnRep_Equip() const
 
 void UCombatComponent::SetAim(const bool NewAim)
 {
+	
 	bIsAiming = NewAim;
 	if(PlayerHUD)
 	{
-		if(bIsAiming)
-		{
+		if(bIsAiming){
 			DefaultFOV = OwnerCharacter->GetFoV();
 			OwnerCharacter->SetFoV(EquipedWeapon->GetAimFoV());
 		}
-		else
-		{
+		else{
 			OwnerCharacter->SetFoV(DefaultFOV);
 		}
-		
 		PlayerHUD->bAim = NewAim;
 	}
+	
 }
+
 
 void UCombatComponent::OnRep_EquipWeapon( AShootWeapon * OldWeapon) const
 {
@@ -215,6 +218,7 @@ void UCombatComponent::OnRep_EquipWeapon( AShootWeapon * OldWeapon) const
 	
 }
 
+
 void UCombatComponent::ServerDropWeapon_Implementation()
 {
 	EquipedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
@@ -230,9 +234,9 @@ void UCombatComponent::ServerDropWeapon_Implementation()
 	bIsAiming = false;
 }
 
+
 void UCombatComponent::DropWeapon()
 {
-	
 	if(PlayerHUD){
 		EquipedWeapon->OnRepAmmoChange.Unbind();
 		PlayerHUD->GetShootUserWidgetController()->OnAmmoChanged.Broadcast(0);
@@ -250,7 +254,6 @@ void UCombatComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
-
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                      FActorComponentTickFunction* ThisTickFunction)
 {
@@ -261,7 +264,6 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		PlayerHUD->bMove = OwnerCharacter->GetCharacterMovement()->Velocity.Length() != 0;
 	}
 }
-
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {

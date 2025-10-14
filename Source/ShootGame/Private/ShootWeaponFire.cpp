@@ -2,11 +2,10 @@
 
 
 #include "ShootWeaponFire.h"
-
-#include "AbilitySystemComponent.h"
 #include "BulletBase.h"
 #include "ShootGameCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
+
 
 
 bool AShootWeaponFire::Fire(const FVector_NetQuantize& FireImpact)
@@ -14,6 +13,7 @@ bool AShootWeaponFire::Fire(const FVector_NetQuantize& FireImpact)
 	
 	if(!Super::Fire(FireImpact))return false;
 	
+
 	FVector  MuzzleLocation =  WeaponMesh->GetSocketLocation(GetMuzzleSocketName());
 	FRotator SpawnRotation  = UKismetMathLibrary::GetDirectionUnitVector(MuzzleLocation , FireImpact).Rotation();
 	FTransform SpawnTransform(SpawnRotation , MuzzleLocation);
@@ -35,16 +35,5 @@ bool AShootWeaponFire::Fire(const FVector_NetQuantize& FireImpact)
 	return true;
 }
 
-FEffectParams AShootWeaponFire::MakeDefaultEffectParam() const
-{
-		FEffectParams Params;
-		if(AShootGameCharacter * Player = Cast<AShootGameCharacter>(GetOwner()))
-		{
-			Params.SoucreASC = Player->GetAbilitySystemComponent();
-			FGameplayEffectContextHandle EffectContextHandle = Params.SoucreASC->MakeEffectContext();
-			EffectContextHandle.AddSourceObject(Player);
-			Params.ApplyEffect = Params.SoucreASC->MakeOutgoingSpec(DamageEffect , 1 , EffectContextHandle);
-			Params.BodyDamage = BodyDamage;
-		}
-		return Params;
-}
+
+

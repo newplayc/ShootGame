@@ -202,7 +202,7 @@ void AShootGameCharacter::Died()
 void AShootGameCharacter::Fire()
 {
 	
-	if (CombatComp && CombatComp->GetIsEquipped())
+	if (CombatComp && CombatComp->GetIsEquipped() && !CombatComp->GetIsReLoad())
 	{
 		CombatComp->Fire();
 	}

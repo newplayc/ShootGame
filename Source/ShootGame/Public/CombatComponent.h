@@ -14,15 +14,12 @@ class AShootGameCharacter;
 class AShootWeapon;
 
 
-
-
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class SHOOTGAME_API UCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-	
 	UCombatComponent();
 	void SetCharacter(AShootGameCharacter * InOwnerCharacter){OwnerCharacter = InOwnerCharacter; }
 	void SetController(AShootGameController * InController);
@@ -35,7 +32,6 @@ public:
 	bool GetIsReLoad() const {return bIsReLoad;}
 	FOnAmmoChange OnAmmoChange;
 	FOnAmmoChange OnMaxAmmoChange;
-
 	void DropWeapon();
 	
 	UFUNCTION(Server , Reliable)
@@ -47,7 +43,6 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-
 	void ReLoadTimerFinish();
 	
 	UFUNCTION(Client ,Reliable)
@@ -73,7 +68,7 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_EquipWeapon( AShootWeapon * OldWeapon) const;
-
+	
 	void SetHudParams() ;
 
 	UFUNCTION(Client , Reliable)
@@ -101,5 +96,4 @@ private:
 	void EquipChange() const;
 	FTimerHandle ReLoadTimerHandle;
 	int32 SpendAmmo= 0;
-
 };

@@ -2,13 +2,15 @@
 
 
 #include "ShootGame/Public/ShootWeapon.h"
-#include "Components/AudioComponent.h"
+
+#include "AbilitySystemComponent.h"
+#include "GameplayEffectTypes.h"
 #include "NiagaraComponent.h"
+#include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "ShootGame/Public/ShootGameCharacter.h"
-
 
 AShootWeapon::AShootWeapon()
 {
@@ -34,8 +36,7 @@ AShootWeapon::AShootWeapon()
 	SphereComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 	SphereComp->SetGenerateOverlapEvents(true);
 	SphereComp->SetupAttachment(WeaponMesh);
-
-
+	
 	FireEffect = CreateDefaultSubobject<UNiagaraComponent>("FireParticle");
 	FireEffect->SetupAttachment(WeaponMesh ,FName("Muzzle"));
 	FireEffect->bAutoActivate = false;
@@ -52,13 +53,11 @@ AShootWeapon::AShootWeapon()
 	RelLoadComponent  = CreateDefaultSubobject<UAudioComponent>("ReloadComponent");
 	RelLoadComponent->SetupAttachment(WeaponMesh ,FName("Muzzle"));
 	RelLoadComponent->bAutoActivate = false;
+	
+
+
 }
 
-void AShootWeapon::AddAmmo(const int32 Ammos)
-{
-	Ammo = FMath::Min(MaxAmmo , Ammos + Ammo);
-	OnRepAmmoChange.ExecuteIfBound(Ammo);
-}
 
 void AShootWeapon::BeginPlay()
 {
@@ -113,14 +112,10 @@ FTransform AShootWeapon::GetWeaponMeshHandSocket() const
 	return WeaponMesh->GetSocketTransform(FName("LeftHandSocket") , RTS_World);
 }
 
-void AShootWeapon::PlayBulletEmptyAudio()const
-{
-	BulletEmpty->Activate();
-}
+
 
 bool AShootWeapon::Fire(const FVector_NetQuantize& FireImpact)
 {
-
 	if(Ammo <=0)
 	{
 		return false;	
@@ -132,12 +127,10 @@ bool AShootWeapon::Fire(const FVector_NetQuantize& FireImpact)
 		Multicast_Fire();
 	}
 	return true;
+	
 }
 
-void AShootWeapon::PlayReloadAudio() const
-{
-	RelLoadComponent->Activate();
-}
+
 
 void AShootWeapon::SetSimulatePhysic_Implementation(bool IsSim)
 {
@@ -160,18 +153,9 @@ void AShootWeapon::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& O
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME_CONDITION(AShootWeapon , Ammo , COND_OwnerOnly);
+	
 }
 
-void AShootWeapon::On_RepAmmo(const int32& oldAmmo) const
-{
-	bool f = OnRepAmmoChange.ExecuteIfBound(Ammo);
-}
-
-void AShootWeapon::SpendAmmo()
-{
-	--Ammo;
-	bool f = OnRepAmmoChange.ExecuteIfBound(Ammo);
-}
 
 void AShootWeapon::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent,
                                         AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
@@ -185,7 +169,6 @@ void AShootWeapon::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent
 	}
 }
 
-
 void AShootWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
@@ -197,4 +180,47 @@ void AShootWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, 
 			GameCharacter->SetTouchWeapon(nullptr);
 		}
 	}
+}
+
+void AShootWeapon::AddAmmo(const int32 Ammos)
+{
+	Ammo = FMath::Min(MaxAmmo , Ammos + Ammo);
+	OnRepAmmoChange.ExecuteIfBound(Ammo);
+}
+
+
+void AShootWeapon::PlayBulletEmptyAudio()const
+{
+	BulletEmpty->Activate();
+}
+void AShootWeapon::PlayReloadAudio() const
+{
+	RelLoadComponent->Activate();
+}
+void AShootWeapon::On_RepAmmo(const int32& oldAmmo) const
+{
+	bool f = OnRepAmmoChange.ExecuteIfBound(Ammo);
+}
+
+void AShootWeapon::SpendAmmo()
+{
+	--Ammo;
+	bool f = OnRepAmmoChange.ExecuteIfBound(Ammo);
+}
+
+FEffectParams AShootWeapon::MakeDefaultEffectParam() const
+{
+	
+		FEffectParams Params;
+		if(AShootGameCharacter * Player = Cast<AShootGameCharacter>(GetOwner()))
+		{
+			Params.SoucreASC = Player->GetAbilitySystemComponent();
+			FGameplayEffectContextHandle EffectContextHandle = Params.SoucreASC->MakeEffectContext();
+			EffectContextHandle.AddSourceObject(Player);
+			Params.ApplyEffect = Params.SoucreASC->MakeOutgoingSpec(DamageEffect , 1 , EffectContextHandle);
+			Params.BodyDamage = BodyDamage;
+		}
+		return Params;
+	
+
 }
