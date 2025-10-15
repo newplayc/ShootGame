@@ -4,7 +4,6 @@
 #include "ShootWeaponRay.h"
 
 #include "AbilitySystemInterface.h"
-#include "CollisionDebugDrawingPublic.h"
 #include "EnemyInterface.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
@@ -42,6 +41,10 @@ bool AShootWeaponRay::Fire(const FVector_NetQuantize& FireImpact)
 		QueryParams,
 		CollisionShape
 		);
+
+	CanFire = false;
+	GetWorld()->GetTimerManager().SetTimer(FireDelayTimer , this , &AShootWeapon::SetCanFire ,FireDelay ,false);
+
 	
 	for(const  FOverlapResult & Target : OverlapResults)
 	{
@@ -53,6 +56,8 @@ bool AShootWeaponRay::Fire(const FVector_NetQuantize& FireImpact)
 			}
 		}
 	}
+
+
 	UShootBlueprintFunctionLibrary::ApplyEffectParams(EffectParams);
 	return true;
 }

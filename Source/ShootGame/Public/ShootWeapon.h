@@ -88,7 +88,6 @@ public:
 	void SetWeaponWidgetVisibility(bool NewVisibility) const;
 	void ChangeWeaponState() const;
 	void SetWeaponState(EWeaponState NewWeaponState);
-
 	
 	FTransform GetWeaponMeshHandSocket()const;
 	
@@ -102,20 +101,18 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void  Multicast_Fire();
-
 	
 	UFUNCTION(NetMulticast ,Reliable)
 	void SetSimulatePhysic(bool IsSim);
-
 	
 	UPROPERTY(EditDefaultsOnly , BlueprintReadOnly , Category="Weapon")
 	FAimCrossHair WeaponAimCrossHair;
-
+	
 	int32 GetAmmo() const{return Ammo;};
 	int32 GetMaxAmmo()const {return MaxAmmo;}
 	
 	FRepAmmo OnRepAmmoChange;
-
+	
 	bool IsFullAmmo() const {return MaxAmmo == Ammo;}
 	
 	// 填满这把武器需要多少子弹
@@ -126,7 +123,11 @@ public:
 	void PlayBulletEmptyAudio()const;
 	
 	void PlayReloadAudio() const;
-
+	
+	bool CanFire = true;
+	
+	UFUNCTION()
+	void SetCanFire();
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -151,10 +152,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UNiagaraComponent * FireEffect;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UAudioComponent * FireAudio;
-	
 	
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	UTexture2D * WeaponIcon;
@@ -167,6 +167,13 @@ protected:
 	
 	UPROPERTY(ReplicatedUsing=On_RepAmmo ,EditDefaultsOnly,Category="Weapon")
 	int32 Ammo =  MaxAmmo;
+
+	UPROPERTY(EditDefaultsOnly , BlueprintReadOnly)
+	float FireDelay;
+
+	FTimerHandle FireDelayTimer;
+
+
 	
 	UPROPERTY(EditDefaultsOnly ,Category="Weapon")
 	TSubclassOf<class UGameplayEffect>DamageEffect;

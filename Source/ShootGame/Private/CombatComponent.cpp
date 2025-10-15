@@ -131,6 +131,7 @@ void UCombatComponent::On_RepAmmoCapacity(const int32 & OldAmmoCapacity) const
 
 void UCombatComponent::Fire()
 {
+	if(bIsReLoad) return;
 	if (GEngine && GEngine->GameViewport)
 	{
 		FVector2D ViewportSize;
@@ -156,7 +157,7 @@ void UCombatComponent::Fire()
 
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& FireImpact)
 {
-	if (EquipedWeapon)
+	if (EquipedWeapon && EquipedWeapon->CanFire)
 	{
 		if(!EquipedWeapon->Fire(FireImpact)){
 			FailFire();
@@ -182,7 +183,6 @@ void UCombatComponent::FailFire_Implementation()
 	EquipedWeapon->PlayBulletEmptyAudio();
 }
 
-
 void UCombatComponent::EquipChange() const
 {
 	if (!OwnerCharacter)return;
@@ -197,19 +197,18 @@ void UCombatComponent::EquipChange() const
 		OwnerCharacter->bUseControllerRotationYaw = false;
 		break;
 	}
+	
 }
-
-
 
 
 void UCombatComponent::OnRep_Equip() const
 {
 	EquipChange();
+	
 }
 
 void UCombatComponent::SetAim(const bool NewAim)
 {
-	
 	bIsAiming = NewAim;
 	if(PlayerHUD)
 	{
@@ -266,7 +265,6 @@ void UCombatComponent::ServerDropWeapon_Implementation()
 
 void UCombatComponent::DropWeapon()
 {
-	
 	if(PlayerHUD){
 		EquipedWeapon->OnRepAmmoChange.Unbind();
 		PlayerHUD->GetShootUserWidgetController()->OnAmmoChanged.Broadcast(0);
@@ -278,7 +276,6 @@ void UCombatComponent::DropWeapon()
 	}
 	ServerDropWeapon();
 }
-
 
 void UCombatComponent::BeginPlay()
 {
@@ -295,6 +292,7 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		PlayerHUD->bMove = OwnerCharacter->GetCharacterMovement()->Velocity.Length() != 0;
 	}
 }
+
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {

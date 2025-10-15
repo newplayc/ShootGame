@@ -39,7 +39,6 @@ void AShootGameController::Move(const FInputActionValue& InputActionValue)
 		GetPawn()->AddMovementInput(ForwardVector , V2d.Y);
 		GetPawn()->AddMovementInput(RightVector , V2d.X);
 	}
-	
 }
 
 void AShootGameController::Turn(const FInputActionValue& InputActionValue)

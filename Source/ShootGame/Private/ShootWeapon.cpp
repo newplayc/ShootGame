@@ -68,7 +68,6 @@ void AShootWeapon::BeginPlay()
 	}
 }
 
-
 void AShootWeapon::SetWeaponWidgetVisibility(bool NewVisibility) const
 {
 	WidgetComp->SetVisibility(NewVisibility);
@@ -121,8 +120,6 @@ bool AShootWeapon::Fire(const FVector_NetQuantize& FireImpact)
 	
 }
 
-
-
 void AShootWeapon::SetSimulatePhysic_Implementation(bool IsSim)
 {
 	GetMesh()->SetSimulatePhysics(IsSim);	
@@ -173,21 +170,29 @@ void AShootWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, 
 	}
 }
 
+
 void AShootWeapon::AddAmmo(const int32 Ammos)
 {
 	Ammo = FMath::Min(MaxAmmo , Ammos + Ammo);
 	OnRepAmmoChange.ExecuteIfBound(Ammo);
 }
 
-
 void AShootWeapon::PlayBulletEmptyAudio()const
 {
 	BulletEmpty->Activate();
 }
+
 void AShootWeapon::PlayReloadAudio() const
 {
 	RelLoadComponent->Activate();
 }
+
+
+void AShootWeapon::SetCanFire()
+{
+		CanFire = true;
+}
+
 void AShootWeapon::On_RepAmmo(const int32& oldAmmo) const
 {
 	bool f = OnRepAmmoChange.ExecuteIfBound(Ammo);
