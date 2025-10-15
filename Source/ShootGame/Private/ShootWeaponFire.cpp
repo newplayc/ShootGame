@@ -12,15 +12,11 @@ bool AShootWeaponFire::Fire(const FVector_NetQuantize& FireImpact)
 {
 	
 	if(!Super::Fire(FireImpact))return false;
-	
 
 	FVector  MuzzleLocation =  WeaponMesh->GetSocketLocation(GetMuzzleSocketName());
 	FRotator SpawnRotation  = UKismetMathLibrary::GetDirectionUnitVector(MuzzleLocation , FireImpact).Rotation();
 	FTransform SpawnTransform(SpawnRotation , MuzzleLocation);
-	
-	DrawDebugSphere(GetWorld() , MuzzleLocation , 4.f , 1 , FColor::Red , false , 2.f , 0 , 3);
-	DrawDebugSphere(GetWorld() , FireImpact , 4.f , 1 , FColor::Black , false , 2.f , 0 , 3);
-	
+		
 	ABulletBase *SpawnBullet =  GetWorld()->SpawnActorDeferred<ABulletBase>(
 		BulletClass ,
 		SpawnTransform ,
@@ -30,7 +26,7 @@ bool AShootWeaponFire::Fire(const FVector_NetQuantize& FireImpact)
 	
 	SpawnBullet->EffectParams = MakeDefaultEffectParam();
 	SpawnBullet->FinishSpawning(SpawnTransform);
-
+	
 	SpendAmmo();
 	return true;
 }

@@ -54,8 +54,6 @@ AShootWeapon::AShootWeapon()
 	RelLoadComponent->SetupAttachment(WeaponMesh ,FName("Muzzle"));
 	RelLoadComponent->bAutoActivate = false;
 	
-
-
 }
 
 
@@ -94,7 +92,6 @@ void AShootWeapon::ChangeWeaponState() const
 		SphereComp->SetCollisionResponseToChannel(ECC_Pawn , ECR_Ignore);
 		WeaponMesh->SetCollisionResponseToChannel(ECC_Pawn , ECR_Ignore);
 		WidgetComp->SetVisibility(false);
-		
 		break;
 	default: ;
 	}
@@ -113,19 +110,13 @@ FTransform AShootWeapon::GetWeaponMeshHandSocket() const
 }
 
 
-
 bool AShootWeapon::Fire(const FVector_NetQuantize& FireImpact)
 {
 	if(Ammo <=0)
 	{
 		return false;	
 	}
-	FireEffect->Activate(true);
-	FireAudio->Activate(true);
-	if (HasAuthority())
-	{
-		Multicast_Fire();
-	}
+	Multicast_Fire();
 	return true;
 	
 }
@@ -221,6 +212,4 @@ FEffectParams AShootWeapon::MakeDefaultEffectParam() const
 			Params.BodyDamage = BodyDamage;
 		}
 		return Params;
-	
-
 }

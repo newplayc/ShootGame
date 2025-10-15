@@ -44,6 +44,7 @@ public:
 	bool GetIsReLoad() const;
 	float GetFoV() const {return CameraComp->FieldOfView;}
 	void SetFoV(const float InFoV )  {CameraComp->SetFieldOfView(InFoV);}
+	
 	UFUNCTION()
 	void ReSpawnPlayer();
 	
@@ -52,8 +53,11 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	float ReLifeDelay = 4;
 	
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = On_RepDead)
 	bool bDead;
+
+	UFUNCTION()
+	void On_RepDead();
 	
 	UFUNCTION(BlueprintCallable)
 	void Fire();
@@ -76,8 +80,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void DropWeapon();
 	
-	UFUNCTION(Server , Reliable)
-	void EquipWeaponOnServer();
+
 
 	
 	virtual UAbilitySystemComponent * GetAbilitySystemComponent() const override;

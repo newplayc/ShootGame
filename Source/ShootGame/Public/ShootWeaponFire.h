@@ -27,6 +27,4 @@ protected:
 	UPROPERTY(EditDefaultsOnly , BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<ABulletBase> BulletClass;
 	
-
-	
 };

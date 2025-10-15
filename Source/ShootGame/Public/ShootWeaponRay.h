@@ -15,7 +15,12 @@ class SHOOTGAME_API AShootWeaponRay : public AShootWeapon
 {
 	GENERATED_BODY()
 
-	virtual bool Fire(const FVector_NetQuantize& FireImpact) override; 
+protected:
+	virtual bool Fire(const FVector_NetQuantize& FireImpact) override;
+
+	UPROPERTY(EditDefaultsOnly)
+	float DamageRadio;
+	
 	
 	// 射线类武器最远距离
 	UPROPERTY(EditDefaultsOnly)
@@ -23,5 +28,7 @@ class SHOOTGAME_API AShootWeaponRay : public AShootWeapon
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UNiagaraSystem>RayNiagara;
-	
+
+	UFUNCTION(NetMulticast , Reliable)
+	void SpawnElecrtic(const FVector_NetQuantize & MuzzleLocation ,const FVector_NetQuantize & SpawnRotation , const FVector_NetQuantize & End);
 };

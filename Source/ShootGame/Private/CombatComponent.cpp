@@ -29,44 +29,64 @@ void UCombatComponent::SetController(AShootGameController* InController)
 			PlayerHUD = Hud;
 		}
 	}
-	
 }
 
 void UCombatComponent::EquipUpWeapon(AShootWeapon* EquipWeapon)
 {
-	if(EquipedWeapon != nullptr)
-	{
-		DropWeapon();
+	if(EquipWeapon == nullptr || !OwnerCharacter)return;
+	
+	if(EquipedWeapon && PlayerHUD){
+		// 有旧武器 
+		EquipedWeapon->OnRepAmmoChange.Unbind();
+		OwnerCharacter->SetFoV(DefaultFOV);
 	}
-	if (EquipWeapon && OwnerCharacter)
+	
+	ServerEquipWeapon(EquipWeapon);
+	if(CharacterController->HasAuthority())
+	SetHudParams();
+}
+void UCombatComponent::ServerEquipWeapon_Implementation(AShootWeapon* EquipWeapon)
+{
+	if(EquipWeapon == nullptr)return;
+	if(EquipedWeapon!=nullptr)
 	{
-		EquipedWeapon = EquipWeapon;
-		if (const USkeletalMeshSocket * MeshSocket =  OwnerCharacter->GetMesh()->GetSocketByName(OwnerCharacter->GetWeaponSocketName()))
-		{
-			EquipedWeapon->GetMesh()->SetSimulatePhysics(false);
-			MeshSocket->AttachActor(EquipedWeapon , OwnerCharacter->GetMesh());
-			bIsEquiped = true;
-			EquipChange();
-			EquipedWeapon->SetOwner(OwnerCharacter);
-			EquipedWeapon->SetWeaponState(EWeaponState::Equipped);
-		}
-		SetHudParams();
+		EquipedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		EquipedWeapon->SetOwner(nullptr);
+		EquipedWeapon->SetSimulatePhysic(true);
+		EquipedWeapon->GetMesh()->SetEnableGravity(true);
+		EquipedWeapon->SetWeaponState(EWeaponState::Spare);
+		bIsAiming = false;
+	}
+	
+	EquipedWeapon = EquipWeapon;
+	EquipedWeapon->SetWeaponState(EWeaponState::Equipped);
+	EquipedWeapon->SetOwner(OwnerCharacter);
+	EquipedWeapon->SetSimulatePhysic(false);
+	bIsEquiped = true;
+
+	
+	EquipChange();
+	if (const USkeletalMeshSocket * MeshSocket =  OwnerCharacter->GetMesh()->GetSocketByName(OwnerCharacter->GetWeaponSocketName()))
+	{
+		MeshSocket->AttachActor(EquipedWeapon , OwnerCharacter->GetMesh());
 	}
 }
 
 void UCombatComponent::SetHudParams()
 {
-		if(PlayerHUD)
-		{	
-			PlayerHUD->AimCrossHair = EquipedWeapon->WeaponAimCrossHair;
-			PlayerHUD->bDrawAimCrossHair = true;
-			PlayerHUD->GetShootUserWidgetController()->OnAmmoChanged.Broadcast(EquipedWeapon->GetAmmo());
-			PlayerHUD->GetShootUserWidgetController()->OnMaxAmmoChanged.Broadcast(AmmoCapacity);
-			PlayerHUD->GetShootUserWidgetController()->OnWeaponIconChange.Broadcast(EquipedWeapon->GetIcon());
-			
-			EquipedWeapon->OnRepAmmoChange.BindUObject(this , &ThisClass::WeaponRep);
-			DefaultFOV = OwnerCharacter->GetFoV();
-		}
+	
+	if(PlayerHUD)
+	{	
+		PlayerHUD->AimCrossHair = EquipedWeapon->WeaponAimCrossHair;
+		PlayerHUD->bDrawAimCrossHair = true;
+		PlayerHUD->GetShootUserWidgetController()->OnAmmoChanged.Broadcast(EquipedWeapon->GetAmmo());
+		PlayerHUD->GetShootUserWidgetController()->OnMaxAmmoChanged.Broadcast(AmmoCapacity);
+		PlayerHUD->GetShootUserWidgetController()->OnWeaponIconChange.Broadcast(EquipedWeapon->GetIcon());
+		
+		EquipedWeapon->OnRepAmmoChange.BindUObject(this , &ThisClass::WeaponRep);
+		DefaultFOV = OwnerCharacter->GetFoV();
+	}
+	
 }
 
 
@@ -90,6 +110,7 @@ void UCombatComponent::ServerReloadAmmo_Implementation()
 	GetWorld()->GetTimerManager().SetTimer(ReLoadTimerHandle,this , &ThisClass::ReLoadTimerFinish , ReLoadTime , false);
 }
 
+
 void UCombatComponent::WeaponRep(const int32 Ammo) const
 {
 	if(PlayerHUD)
@@ -97,6 +118,7 @@ void UCombatComponent::WeaponRep(const int32 Ammo) const
 		PlayerHUD->GetShootUserWidgetController()->OnAmmoChanged.Broadcast(Ammo);
 	}
 }
+
 
 void UCombatComponent::On_RepAmmoCapacity(const int32 & OldAmmoCapacity) const
 {
@@ -130,6 +152,8 @@ void UCombatComponent::Fire()
 		ServerFire(Hit.ImpactPoint);
 	}
 }
+
+
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& FireImpact)
 {
 	if (EquipedWeapon)
@@ -189,7 +213,8 @@ void UCombatComponent::SetAim(const bool NewAim)
 	bIsAiming = NewAim;
 	if(PlayerHUD)
 	{
-		if(bIsAiming){
+		if(bIsAiming)
+		{
 			DefaultFOV = OwnerCharacter->GetFoV();
 			OwnerCharacter->SetFoV(EquipedWeapon->GetAimFoV());
 		}
@@ -202,7 +227,7 @@ void UCombatComponent::SetAim(const bool NewAim)
 }
 
 
-void UCombatComponent::OnRep_EquipWeapon( AShootWeapon * OldWeapon) const
+void UCombatComponent::OnRep_EquipWeapon( AShootWeapon * OldWeapon) 
 {
 	if(OldWeapon!=nullptr)
 	{
@@ -212,8 +237,11 @@ void UCombatComponent::OnRep_EquipWeapon( AShootWeapon * OldWeapon) const
 	}
 	if(EquipedWeapon !=nullptr)
 	{
-		EquipedWeapon->GetMesh()->SetSimulatePhysics(false);
-		EquipedWeapon->SetWeaponState(EWeaponState::Equipped);	
+		EquipedWeapon->SetWeaponState(EWeaponState::Equipped);
+		if(CharacterController)
+		{
+			SetHudParams();
+		}
 	}
 	
 }
@@ -221,15 +249,16 @@ void UCombatComponent::OnRep_EquipWeapon( AShootWeapon * OldWeapon) const
 
 void UCombatComponent::ServerDropWeapon_Implementation()
 {
+	
 	EquipedWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	EquipedWeapon->SetOwner(nullptr);
-	EquipedWeapon->GetMesh()->SetSimulatePhysics(true);
+	EquipedWeapon->SetSimulatePhysic(true);
 	EquipedWeapon->GetMesh()->SetEnableGravity(true);
 	EquipedWeapon->SetWeaponState(EWeaponState::Spare);
 	
 	bIsEquiped = false;
 	EquipChange();
-
+	
 	EquipedWeapon = nullptr;
 	bIsAiming = false;
 }
@@ -237,6 +266,7 @@ void UCombatComponent::ServerDropWeapon_Implementation()
 
 void UCombatComponent::DropWeapon()
 {
+	
 	if(PlayerHUD){
 		EquipedWeapon->OnRepAmmoChange.Unbind();
 		PlayerHUD->GetShootUserWidgetController()->OnAmmoChanged.Broadcast(0);
@@ -248,6 +278,7 @@ void UCombatComponent::DropWeapon()
 	}
 	ServerDropWeapon();
 }
+
 
 void UCombatComponent::BeginPlay()
 {
@@ -285,6 +316,8 @@ void UCombatComponent::ReLoadTimerFinish()
 	}
 	bIsReLoad = false;
 }
+
+
 
 
 

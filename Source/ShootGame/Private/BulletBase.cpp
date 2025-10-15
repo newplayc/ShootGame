@@ -75,7 +75,7 @@ void ABulletBase::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 	{
 		if(IAbilitySystemInterface * AbilitySystemInterface = Cast<IAbilitySystemInterface>(OtherActor))
 		{
-			EffectParams.TargetASC = AbilitySystemInterface->GetAbilitySystemComponent();
+			EffectParams.TargetASC.Add( AbilitySystemInterface->GetAbilitySystemComponent());
 			FName HitBoneName =  IEnemyInterface::Execute_GetNearBoneWithBullet(OtherActor , Hit.ImpactPoint);
 			float Damage = EffectParams.BodyDamage.GetDamage(HitBoneName);
 			FGameplayTag ShootWeapontag = FShootGameplayTags::GetShootTags().ShootWeaponDamageTag;

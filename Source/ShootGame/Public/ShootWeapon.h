@@ -59,7 +59,7 @@ struct FEffectParams
 	UAbilitySystemComponent * SoucreASC;
 
 	UPROPERTY()
-	UAbilitySystemComponent * TargetASC;
+	 TArray<UAbilitySystemComponent *>  TargetASC;
 	
 	UPROPERTY()
 	FGameplayEffectSpecHandle ApplyEffect;
@@ -142,7 +142,7 @@ protected:
 	TObjectPtr<UWidgetComponent> WidgetComp;
 	
 	EWeaponState NowWeaponState;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UAudioComponent * BulletEmpty;
 

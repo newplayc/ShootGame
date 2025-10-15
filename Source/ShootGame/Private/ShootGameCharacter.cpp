@@ -19,6 +19,7 @@
 #include "Net/UnrealNetwork.h"
 #include "ShootGame/ShootGame.h"
 #include "ShootGame/Public/ShootWeapon.h"
+#include "Windows/WindowsApplication.h"
 
 
 AShootGameCharacter::AShootGameCharacter()
@@ -86,6 +87,7 @@ void AShootGameCharacter::Tick(float DeltaTime)
 		double Dis =  UKismetMathLibrary::Vector_Distance(CameraComp->GetComponentLocation() , GetActorLocation());
 		GetMesh()->SetVisibility(Dis >= 80);
 	}
+	
 }
 
 void AShootGameCharacter::SetTouchWeapon(AShootWeapon* NewTouchWeapon)
@@ -186,6 +188,7 @@ void AShootGameCharacter::ReSpawnPlayer()
 	}
 }
 
+
 void AShootGameCharacter::Died()
 {
 	
@@ -196,8 +199,20 @@ void AShootGameCharacter::Died()
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle , this , &ThisClass::ReSpawnPlayer , 3,false);
-} 
+	if(IsLocallyControlled())
+	{
+		DropWeapon();
+	}
+}
 
+
+void AShootGameCharacter::On_RepDead()
+{
+	if(IsLocallyControlled())
+	{
+		DropWeapon();
+	}
+}
 
 void AShootGameCharacter::Fire()
 {
@@ -208,6 +223,7 @@ void AShootGameCharacter::Fire()
 	}
 }
 
+
 void AShootGameCharacter::PlayFireMontage_Implementation()
 {
 	FName SectionName = GetIsAim() ? FName("Ironsights") : FName("Hip");
@@ -217,6 +233,7 @@ void AShootGameCharacter::PlayFireMontage_Implementation()
 	PlayAnimMontage(FireMontage , 1 , SectionName);
 	
 }
+
 
 
 void AShootGameCharacter::Aim(bool NewAim)
@@ -230,6 +247,9 @@ void AShootGameCharacter::Aim(bool NewAim)
 		ServerAim(NewAim);
 	}
 }
+
+
+
 void AShootGameCharacter::ServerAim_Implementation(bool NewAim)
 {
 	if (CombatComp && CombatComp->GetIsEquipped())
@@ -238,6 +258,8 @@ void AShootGameCharacter::ServerAim_Implementation(bool NewAim)
 	}
 }
 
+
+
 void AShootGameCharacter::EquipWeapon()
 {
 	if (CombatComp && TouchWeapon)
@@ -245,11 +267,9 @@ void AShootGameCharacter::EquipWeapon()
 		auto temp = TouchWeapon;
 		TouchWeapon = nullptr;
 		CombatComp->EquipUpWeapon(temp);
-		
-		if(!HasAuthority())
-		EquipWeaponOnServer();
 	}
 }
+
 
 void AShootGameCharacter::ReLoadAmmo()
 {
@@ -258,6 +278,7 @@ void AShootGameCharacter::ReLoadAmmo()
 		CombatComp->ServerReloadAmmo();
 	}
 }
+
 
 void AShootGameCharacter::DropWeapon()
 {
@@ -268,16 +289,6 @@ void AShootGameCharacter::DropWeapon()
 }
 
 
-void AShootGameCharacter::EquipWeaponOnServer_Implementation()
-{
-	if (CombatComp  && TouchWeapon)
-	{
-		auto temp = TouchWeapon;
-		TouchWeapon = nullptr;
-		CombatComp->EquipUpWeapon(temp);
-	}
-}
-
 void AShootGameCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -285,6 +296,9 @@ void AShootGameCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	DOREPLIFETIME(AShootGameCharacter , bDead);
 	DOREPLIFETIME_CONDITION(AShootGameCharacter , AimRotation ,COND_SimulatedOnly);
 }
+
+
+
 
 void AShootGameCharacter::PostInitializeComponents()
 {
@@ -352,6 +366,7 @@ void AShootGameCharacter::PlayDeathMontage_Implementation()
 {
 	PlayAnimMontage(DeathMontage , 1);
 }
+
 
 void AShootGameCharacter::OnRep_TouchWeapon(AShootWeapon* LastWeapon) const
 {

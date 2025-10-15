@@ -7,5 +7,8 @@
 
 void UShootBlueprintFunctionLibrary::ApplyEffectParams(const FEffectParams& EffectParams)
 {
-	EffectParams.TargetASC->ApplyGameplayEffectSpecToSelf(*EffectParams.ApplyEffect.Data);
+	for(UAbilitySystemComponent * TargetASC : EffectParams.TargetASC)
+	{
+		TargetASC-> ApplyGameplayEffectSpecToSelf(*EffectParams.ApplyEffect.Data);
+	}
 }

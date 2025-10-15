@@ -14,6 +14,7 @@ class AShootGameCharacter;
 class AShootWeapon;
 
 
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class SHOOTGAME_API UCombatComponent : public UActorComponent
 {
@@ -30,13 +31,15 @@ public:
 	bool GetIsAim() const {return bIsAiming;}
 	void SetAim(bool NewAim);
 	bool GetIsReLoad() const {return bIsReLoad;}
+	
 	FOnAmmoChange OnAmmoChange;
 	FOnAmmoChange OnMaxAmmoChange;
+	
 	void DropWeapon();
 	
 	UFUNCTION(Server , Reliable)
 	void ServerReloadAmmo();
-
+	
 	UFUNCTION(Server ,Reliable)
 	void ServerDropWeapon();
 protected:
@@ -44,7 +47,10 @@ protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	void ReLoadTimerFinish();
-	
+
+	UFUNCTION(Server , Reliable)
+	void ServerEquipWeapon(AShootWeapon * EquipWeapon);
+		
 	UFUNCTION(Client ,Reliable)
 	void ReLoadFinish();
 	
@@ -66,14 +72,10 @@ protected:
 	UPROPERTY(Replicated)
 	bool bIsReLoad = false;
 	
-	UFUNCTION()
-	void OnRep_EquipWeapon( AShootWeapon * OldWeapon) const;
-	
 	void SetHudParams() ;
 
 	UFUNCTION(Client , Reliable)
 	void FailFire();
-	
 	
 	UFUNCTION()
 	void WeaponRep(int32 Ammo) const;
@@ -83,13 +85,18 @@ protected:
 
 	UFUNCTION()
 	void On_RepAmmoCapacity(const int32 & OldAmmoCapacity) const;
-
 	
 	float DefaultFOV;
+	
+	UFUNCTION()
+	void OnRep_EquipWeapon( AShootWeapon * OldWeapon);
+
 private:
+	
 	UPROPERTY(ReplicatedUSing  = OnRep_EquipWeapon)
 	AShootWeapon * EquipedWeapon =  nullptr;
 	
+	AShootWeapon * NextEquipWeapon = nullptr;
 	AShootGameCharacter * OwnerCharacter = nullptr;
 	AShootGameController * CharacterController =  nullptr;
 	AShootHud  * PlayerHUD = nullptr;
