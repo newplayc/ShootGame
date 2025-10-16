@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "EnemyAttributeAsset.h"
 #include "GameFramework/GameModeBase.h"
 #include "AShootGameMode.generated.h"
 
@@ -18,4 +19,7 @@ public:
 	void PlayerElim(ACharacter * DCharacter  , APlayerController * DController);
 
 	void ReLifePlayer(APlayerController * RPlayerController);
+
+	UPROPERTY(EditDefaultsOnly ,Category ="Data")
+	TObjectPtr<UEnemyAttributeAsset>EnemyAttributeAsset;
 };

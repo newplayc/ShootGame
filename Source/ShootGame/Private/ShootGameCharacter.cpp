@@ -188,10 +188,8 @@ void AShootGameCharacter::ReSpawnPlayer()
 	}
 }
 
-
-void AShootGameCharacter::Died()
+void AShootGameCharacter::Died_Implementation()
 {
-	
 	bDead = true;
 	PlayDeathMontage();
 	GetCharacterMovement()->StopMovementImmediately();
@@ -204,6 +202,8 @@ void AShootGameCharacter::Died()
 		DropWeapon();
 	}
 }
+
+
 
 
 void AShootGameCharacter::On_RepDead()
@@ -351,10 +351,12 @@ FName AShootGameCharacter::GetNearBoneWithBullet_Implementation(const FVector_Ne
 	return RetName;
 }
 
+
 bool AShootGameCharacter::IsDead_Implementation()
 {
 	return bDead;
 }
+
 
 void AShootGameCharacter::PlayReactMontage_Implementation()
 {

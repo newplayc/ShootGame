@@ -15,5 +15,7 @@ class SHOOTGAME_API UShootAbilitySystemComponent : public UAbilitySystemComponen
 	GENERATED_BODY()
 
 public:
+	void InitAbilities(const TArray<TSubclassOf<UGameplayAbility>> & Abilities);
 	void ApplyEffectToInit(const TSubclassOf<UGameplayEffect> & GE , float level , UObject  *Source);
+	
 };

@@ -11,9 +11,6 @@ class ABulletBase;
  *
  */
 
-
-
-
 UCLASS()
 class SHOOTGAME_API AShootWeaponFire : public AShootWeapon
 {

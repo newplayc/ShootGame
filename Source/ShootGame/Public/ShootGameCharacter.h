@@ -47,8 +47,8 @@ public:
 	
 	UFUNCTION()
 	void ReSpawnPlayer();
-	
-	void Died();
+
+	 void Died_Implementation();
 	
 	UPROPERTY(EditDefaultsOnly)
 	float ReLifeDelay = 4;
@@ -86,13 +86,13 @@ public:
 	virtual UAbilitySystemComponent * GetAbilitySystemComponent() const override;
 	UAttributeSet * GetAttribute() const;
 	virtual FName GetNearBoneWithBullet_Implementation(const FVector_NetQuantize& HitLocation) override;
-	virtual bool IsDead_Implementation() override;
+	bool IsDead_Implementation();
 	
-	UFUNCTION(NetMulticast , Unreliable)
-	void PlayReactMontage();
+	UFUNCTION(NetMulticast ,Reliable)
+	virtual void PlayReactMontage() override;
 	
-	UFUNCTION(NetMulticast ,Unreliable)
-	void PlayDeathMontage();
+	UFUNCTION(NetMulticast ,Reliable)
+	virtual void PlayDeathMontage() override;
 
 	UFUNCTION(NetMulticast , Unreliable)
 	void PlayReLoadMontage();

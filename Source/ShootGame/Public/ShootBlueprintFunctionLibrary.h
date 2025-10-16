@@ -7,6 +7,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "ShootBlueprintFunctionLibrary.generated.h"
 
+class AShootEnemy;
 /**
  * 
  */
@@ -15,5 +16,10 @@ class SHOOTGAME_API UShootBlueprintFunctionLibrary : public UBlueprintFunctionLi
 {
 	GENERATED_BODY()
 public:
+	
 	static	void ApplyEffectParams(const FEffectParams & EffectParams);
+	
+	static void InitEnemy(AShootEnemy * InitObject);
+	
+	static void GetOverlapActorsAtLocationWithSphere(AActor * WorldContextObject   ,TArray<AActor*>&Overlaps , const FVector & Center  , float Radius);  
 };

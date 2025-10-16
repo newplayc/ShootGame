@@ -40,7 +40,8 @@ void UCombatComponent::EquipUpWeapon(AShootWeapon* EquipWeapon)
 		EquipedWeapon->OnRepAmmoChange.Unbind();
 		OwnerCharacter->SetFoV(DefaultFOV);
 	}
-	
+
+	EquipWeapon->PlayEquipSound();
 	ServerEquipWeapon(EquipWeapon);
 	if(CharacterController->HasAuthority())
 	SetHudParams();

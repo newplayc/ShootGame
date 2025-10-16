@@ -63,7 +63,6 @@ void ABulletBase::Destroyed()
 
 
 
-
 void ABulletBase::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
@@ -83,7 +82,7 @@ void ABulletBase::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 			UShootBlueprintFunctionLibrary::ApplyEffectParams(EffectParams);
 		}
 	}
-	
+
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld() , HitParticle , GetActorLocation());
 	Destroy();
 }

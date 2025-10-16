@@ -3,6 +3,14 @@
 
 #include "ShootAbilitySystemComponent.h"
 
+void UShootAbilitySystemComponent::InitAbilities(const TArray<TSubclassOf<UGameplayAbility>> & Abilities)
+{
+	for(const TSubclassOf<UGameplayAbility>  &  GA :  Abilities){
+		FGameplayAbilitySpec GAspec(GA , 1);
+		GiveAbility(GAspec);
+	}
+}
+
 void UShootAbilitySystemComponent::ApplyEffectToInit(const TSubclassOf<UGameplayEffect> & GE , float level , UObject * Source)
 {
 	checkf(GE , TEXT("The InitAttribue GE Is Empty check the Character Bp With EffectToInit "));
@@ -11,4 +19,6 @@ void UShootAbilitySystemComponent::ApplyEffectToInit(const TSubclassOf<UGameplay
 	ContextHandle.AddSourceObject(Source);
 	FGameplayEffectSpecHandle EffectSpecHandle =   MakeOutgoingSpec(GE ,level , ContextHandle);
 	ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data);
+
+	
 }

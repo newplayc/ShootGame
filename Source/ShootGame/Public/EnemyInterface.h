@@ -26,7 +26,21 @@ public:
 	FName GetNearBoneWithBullet(const FVector_NetQuantize & HitLocation);
 
 	UFUNCTION(BlueprintNativeEvent)
+	void UpdateMotionWarp(FVector TargetLocation);
+	
+	UFUNCTION(BlueprintNativeEvent)
 	bool IsDead();
+
+	UFUNCTION(BlueprintNativeEvent)
+	void Died();
+	
+	UFUNCTION(NetMulticast , Reliable)
+	virtual  void PlayReactMontage();
+	
+	
+	UFUNCTION(NetMulticast ,Reliable)
+	virtual void PlayDeathMontage();
+	
 	
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:

@@ -10,7 +10,7 @@ public class ShootGame : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
 			"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput","OnlineSubsystem","OnlineSubsystemSteam","UMG","GameplayTags","GameplayAbilities","GameplayTasks",
-			"AIModule"
+			"AIModule" ,"MotionWarping"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "Niagara" });

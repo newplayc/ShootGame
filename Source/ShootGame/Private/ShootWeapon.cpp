@@ -9,6 +9,7 @@
 #include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "ShootGame/Public/ShootGameCharacter.h"
 
@@ -187,6 +188,11 @@ void AShootWeapon::PlayReloadAudio() const
 	RelLoadComponent->Activate();
 }
 
+
+void AShootWeapon::PlayEquipSound() const
+{
+	UGameplayStatics::PlaySound2D(this , EquipSound , 2 , 1);
+}
 
 void AShootWeapon::SetCanFire()
 {

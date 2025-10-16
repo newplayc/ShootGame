@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemComponent.h"
 #include "GameplayEffectTypes.h"
 #include "ShootHud.h"
 #include "GameFramework/Actor.h"
@@ -125,6 +126,9 @@ public:
 	void PlayReloadAudio() const;
 	
 	bool CanFire = true;
+
+
+	void PlayEquipSound() const;
 	
 	UFUNCTION()
 	void SetCanFire();
@@ -173,6 +177,8 @@ protected:
 
 	FTimerHandle FireDelayTimer;
 
+	UPROPERTY(EditDefaultsOnly , Category ="Weapon")
+	TObjectPtr< USoundBase>EquipSound; 
 
 	
 	UPROPERTY(EditDefaultsOnly ,Category="Weapon")
@@ -187,6 +193,7 @@ protected:
 	void SpendAmmo();
 	
 	virtual FEffectParams MakeDefaultEffectParam() const;
+
 private:
 	
 	UFUNCTION()

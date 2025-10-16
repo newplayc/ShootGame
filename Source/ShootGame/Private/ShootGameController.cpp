@@ -34,17 +34,21 @@ void AShootGameController::Move(const FInputActionValue& InputActionValue)
 	const FVector ForwardVector = FRotationMatrix(URotator).GetUnitAxis(EAxis::X);
 	const FVector RightVector = FRotationMatrix(URotator).GetUnitAxis(EAxis::Y);
 
+
+	float Delta =  GetWorld()->DeltaTimeSeconds;
+	
 	if (GetPawn())
 	{
-		GetPawn()->AddMovementInput(ForwardVector , V2d.Y);
-		GetPawn()->AddMovementInput(RightVector , V2d.X);
+		GetPawn()->AddMovementInput(ForwardVector ,1 / Delta *  V2d.Y);
+		GetPawn()->AddMovementInput(RightVector ,1 / Delta *  V2d.X);
 	}
 }
 
 void AShootGameController::Turn(const FInputActionValue& InputActionValue)
 {
 	const FVector2D V2d  = InputActionValue.Get<FVector2D>();
-	AddYawInput(V2d.X);
+
+	AddYawInput( V2d.X);
 	AddPitchInput(V2d.Y);
 }
 

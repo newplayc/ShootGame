@@ -37,8 +37,8 @@ void UShootAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallb
 	AActor * SourceActor = Data.EffectSpec.GetContext().GetOriginalInstigatorAbilitySystemComponent()->GetAvatarActor();
 	AActor * TargetActor = Data.Target.GetAvatarActor();
 
-	AShootGameCharacter * SourceCharacter = Cast<AShootGameCharacter>(SourceActor);
-	AShootGameCharacter * TargetCharacter = Cast<AShootGameCharacter>(TargetActor);
+	IEnemyInterface  * SourceCharacter = Cast<IEnemyInterface>(SourceActor);
+	IEnemyInterface * TargetCharacter = Cast<IEnemyInterface>(TargetActor);
 
 	
 	if(!SourceActor || !TargetActor)return;
